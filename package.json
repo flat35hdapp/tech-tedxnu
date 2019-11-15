@@ -1,0 +1,19 @@
+{
+  "name": "tech-tedxnu",
+  "version": "1.0.0",
+  "description": "this product make tedxnuer happier.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flat35hdapp/tech-tedxnu.git"
+  },
+  "author": "WataruSugiura,YudaiShibuya",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/flat35hdapp/tech-tedxnu/issues"
+  },
+  "homepage": "https://github.com/flat35hdapp/tech-tedxnu#readme"
+}

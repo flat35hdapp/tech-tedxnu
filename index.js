@@ -15,10 +15,10 @@ app.get("/mtg",function(req,res,next){
 
 const mysql = require('mysql');
 const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'nodeuser',
-    password: 'nodeuser',
-    database: 'memberlist',
+    host: process.env.MYSQL_HOST,
+    user: process.env.MYSQL_USER,
+    password: process.env.MYSQL_PW,
+    database: process.env.MYSQL_DB,
 });
 
 // Connectionを定義する

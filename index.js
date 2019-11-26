@@ -12,8 +12,10 @@ app.get("/mtg",function(req,res,next){
 
 /* sample.js */
 'use strict'
+const mysql = require('mysql');
+require('dotenv').config();
 function mySqlSet(){
-  const mysql = require('mysql');
+
   const connection = mysql.createConnection({
       host: 'localhost',
       user: 'nodeuser',
@@ -33,3 +35,4 @@ function mySqlSet(){
   connection.end();
 }
 mySqlSet();
+console.log(process.env.MYSQL_DB);

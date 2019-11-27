@@ -14,13 +14,14 @@ app.get("/mtg",function(req,res,next){
 'use strict'
 const mysql = require('mysql');
 require('dotenv').config();
+
 function mySqlSet(){
 
   const connection = mysql.createConnection({
-      host: 'localhost',
-      user: 'nodeuser',
-      password: 'nodeuser',
-      database: 'memberlist',
+      host: process.env.MYSQL_HOST,
+      user: process.env.MYSQL_USER,
+      password: process.env.MYSQL_PW,
+      database: process.env.MYSQL_DB,
   });
 
   // Connectionを定義する
@@ -31,8 +32,7 @@ function mySqlSet(){
       if (err) throw err;
       console.log('userテーブル: ', rows);
   });
-
   connection.end();
 }
+
 mySqlSet();
-console.log(process.env.MYSQL_DB);

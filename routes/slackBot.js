@@ -15,10 +15,16 @@ router.post('/events',async (req,res) => {
       if(type==='app_home_opend'){
         appHome.displayHome(user);
       }
+      break;
     }
+    default : {res.sendStatus(404);}
   }
 
   if(type==='app_home_opend'){
     displayHome(user);
   }
+})
+
+router.post('/actions',async(req,res) => {
+  const {token,trigger_id,user,actions,type } = JSON.parse(req.body.payload);
 })

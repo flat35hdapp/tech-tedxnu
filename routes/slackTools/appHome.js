@@ -11,14 +11,14 @@ const updataView = async (user) => {
       type:'section',
       text:{
         type:'mrkdwn',
-        text:"*Welcome!* \nThis is a home for Stickers app. You can add small notes here!"
+        text:"*Welcome!* \nThis is a home for attendance/absence app. You can create and answer mtg request."
       },
       accessory:{
         type: "button",
-        action_id: "add_note",
+        action_id: "add_mtg",
         text: {
           type: "plain_text",
-          text: "Add a Stickie",
+          text: "Make MTG",
           emoji: true
         }
       }
@@ -28,7 +28,7 @@ const updataView = async (user) => {
       elements: [
         {
           type: "mrkdwn",
-          text: ":wave: Hey, my source code is on <https://glitch.com/edit/#!/apphome-demo-keep|glitch>!"
+          text: ":wave: Hey, this app is in development. plz feed back to #20-team-tech-apps."
         }
       ]
     },
@@ -87,4 +87,103 @@ const displayHome = async (user) => {
 
 };
 
-module.exports = {displayHome};
+const openModal = async (trigger_id) => {
+  const modal = {
+    type: 'modal',
+    title: {
+      type: 'plain_text',
+      text: 'Create a MTG'
+    },
+    submit: {
+      type: 'plain_text',
+      text: 'Create'
+    },
+    blocks: [
+      // Text input
+      {
+        "type": "input",
+        "block_id": "note01",
+        "label": {
+          "type": "plain_text",
+          "text": "Note"
+        },
+        "element": {
+          "action_id": "content",
+          "type": "plain_text_input",
+          "placeholder": {
+            "type": "plain_text",
+            "text": "Take a note... \n(Text longer than 3000 characters will be truncated!)"
+          },
+          "multiline": true
+        }
+      },
+
+      // Drop-down menu
+      {
+        "type": "input",
+        "block_id": "note02",
+        "label": {
+          "type": "plain_text",
+          "text": "Color",
+        },
+        "element": {
+          "type": "static_select",
+          "action_id": "make_mtg_name",
+          "options": [
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "speaker"
+              },
+              "value": "speaker_mtg"
+            },
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "communication"
+              },
+              "value": "communication_mtg"
+            },
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "tech"
+              },
+              "value": "tech_mtg"
+            },
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "organize"
+              },
+              "value": "organize_mtg"
+            },
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "all"
+              },
+              "value": "all_mtg"
+            },
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "leaders"
+              },
+              "value": "leaders_mtg"
+            },
+          ]
+        }
+
+      }
+    ]
+  };
+  const args = {
+    token: slackBotToken,
+    trigger_id: trigger_id,
+    view: JSON.stringify(modal)
+  };
+
+  const result = await axios.post(`${apiUrl}/views.open`, qs.stringify(args));
+}
+module.exports = {displayHome,openModal};

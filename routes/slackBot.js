@@ -28,10 +28,17 @@ router.post('/events',async (req,res,next) => {
 router.post('/actions',async(req,res,next) => {
   const {token,trigger_id,user,actions,type } = JSON.parse(req.body.payload);//なぜかpayloadがオブジェクトではなく文字列で渡されるため処理している。
   //console.log(req.body);
-  if(actions[0].action_id==='add_mtg'){
-    appHome.openModal(trigger_id);
+  switch(actions[0].action_id){
+    case 'add_mtg': {
+      appHome.openModal(trigger_id);
+      res.sendStatus(200);
+      break;
+    }
+    case '': {
+
+    }
+    default : {res.sendStatus(404);}
   }
-  res.sendStatus(200);
 })
 
 module.exports = {router};

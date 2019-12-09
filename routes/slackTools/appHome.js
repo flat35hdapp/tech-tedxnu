@@ -34,13 +34,51 @@ const updataView = async (user) => {
     },
     {
       type: 'divider'
-    }
+    },
   ];
+
+  //mongodbにクエリでslackのユーザーIDが含まれているチームやミーティングの情報を取ってきて、配列に格納する処理。
+
+  const mtgSection = (mtgName,mtgDate,mtgStartTime,mtgEndTime,mtgPlace,) => {
+    return {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*" + mtgName + " " + mtgDate + "* \n" + mtgStartTime + "—" + mtgEndTime + " | " + mtgPlace +"\nStatus: *" + "" + "* "
+      },
+      "accessory": {
+        "type": "overflow",
+        "options": [
+          {
+            "text": {
+              "type": "plain_text",
+              "text": "Edit the agenda",
+              "emoji": true
+            },
+            "value": "edit_agenda"
+          },
+          {
+            "text": {
+              "type": "plain_text",
+              "text": "Cansel this MTG",
+              "emoji": true
+            },
+            "value": "edit_agenda"
+          }
+        ]
+      }
+    };
+  }
+
+  for(let i = 0;i<array.length;i++){
+    blocks.push(mtgSection());
+  }
+
   const view = {
     type: 'home',
     title:{
       type:'plain_text',
-      text:'well...'
+      text:'att_abs_home'
     },
     blocks:blocks
   };
@@ -85,7 +123,7 @@ const displayHome = async (user) => {
     console.log(body);
   });*/
 
-};
+}
 
 const openModal = async (trigger_id) => {
   const modal = {
@@ -99,32 +137,13 @@ const openModal = async (trigger_id) => {
       text: 'Create'
     },
     blocks: [
-      // Text input
-      {
-        "type": "input",
-        "block_id": "note01",
-        "label": {
-          "type": "plain_text",
-          "text": "Note"
-        },
-        "element": {
-          "action_id": "content",
-          "type": "plain_text_input",
-          "placeholder": {
-            "type": "plain_text",
-            "text": "Take a note... \n(Text longer than 3000 characters will be truncated!)"
-          },
-          "multiline": true
-        }
-      },
-
       // Drop-down menu
       {
         "type": "input",
-        "block_id": "note02",
+        "block_id": "make_mtg_01",
         "label": {
           "type": "plain_text",
-          "text": "Color",
+          "text": "team",
         },
         "element": {
           "type": "static_select",
@@ -174,8 +193,43 @@ const openModal = async (trigger_id) => {
             },
           ]
         }
-
-      }
+      },
+      // Text input
+      {
+        "type": "input",
+        "block_id": "make_mtg_02",
+        "label": {
+          "type": "plain_text",
+          "text": "agenda"
+        },
+        "element": {
+          "action_id": "content",
+          "type": "plain_text_input",
+          "placeholder": {
+            "type": "plain_text",
+            "text": "一つ目の議題"
+          },
+          "multiline": false
+        },
+        "element": {
+          "action_id": "content",
+          "type": "plain_text_input",
+          "placeholder": {
+            "type": "plain_text",
+            "text": "二つ目の議題"
+          },
+          "multiline": false
+        },
+        "element": {
+          "action_id": "content",
+          "type": "plain_text_input",
+          "placeholder": {
+            "type": "plain_text",
+            "text": "三つ目の議題"
+          },
+          "multiline": false
+        }
+      },
     ]
   };
   const args = {
@@ -185,5 +239,9 @@ const openModal = async (trigger_id) => {
   };
 
   const result = await axios.post(`${apiUrl}/views.open`, qs.stringify(args));
+}
+
+const openAgendaModal = async (trigger_id) => {
+
 }
 module.exports = {displayHome,openModal};

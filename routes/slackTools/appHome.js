@@ -39,7 +39,8 @@ const updataView = async (user) => {
 
   //mongodbにクエリでslackのユーザーIDが含まれているチームやミーティングの情報を取ってきて、配列に格納する処理。
 
-  const mtgSection = (mtgName,mtgDate,mtgStartTime,mtgEndTime,mtgPlace,) => {
+  const mtgSection = (mtgObj) => {
+    const {mtgId,mtgName,mtgDate,mtgStartTime,mtgEndTime,mtgPlace} = mtgObj;
     return {
       "type": "section",
       "text": {
@@ -63,8 +64,9 @@ const updataView = async (user) => {
               "text": "Cansel this MTG",
               "emoji": true
             },
-            "value": "edit_agenda"
-          }
+            "value": "cancel_mtg"
+          },
+          "action_id": mtgId
         ]
       }
     };

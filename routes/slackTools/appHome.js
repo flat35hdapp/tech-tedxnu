@@ -4,7 +4,7 @@ const axios = require('axios');
 const mongo = require('../mongodb/slack.js');
 
 const apiUrl = 'https://slack.com/api';
-const slackBotToken = process.env.SLACK_BOT_TOKEN;
+const slack_bot_token = process.env.SLACK_BOT_TOKEN;
 
 const updataView = async (user) => {
   let blocks = [
@@ -41,12 +41,12 @@ const updataView = async (user) => {
   //mongodbにクエリでslackのユーザーIDが含まれているチームやミーティングの情報を取ってきて、配列に格納する処理。
 
   const mtgSection = (mtgObj) => {
-    const {mtgId,mtgName,mtgDate,mtgStartTime,mtgEndTime,mtgPlace} = mtgObj;
+    const {mtg_id,mtg_name,mtg_date,mtg_start_time,mtg_end_time,mtg_place} = mtgObj;
     return {
       "type": "section",
       "text": {
         "type": "mrkdwn",
-        "text": "*" + mtgName + " " + mtgDate + "* \n" + mtgStartTime + "—" + mtgEndTime + " | " + mtgPlace +"\nStatus: *" + "" + "* "
+        "text": "*" + mtg_name + " " + mtg_date + "* \n" + mtg_start_time + "—" + mtg_end_time + " | " + mtg_place +"\nStatus: *" + "" + "* "
       },
       "accessory": {
         "type": "overflow",
@@ -67,7 +67,7 @@ const updataView = async (user) => {
             },
             "value": "cancel_mtg"
           },
-          "action_id": mtgId
+          "action_id": mtg_id
         ]
       }
     };
@@ -91,7 +91,7 @@ const updataView = async (user) => {
 
 const displayHome = async (user) => {
   const args = {
-    token: slackBotToken,
+    token: slack_bot_token,
     user_id: user,
     view: await updataView(user)
   };
@@ -108,7 +108,7 @@ const displayHome = async (user) => {
   /*const result = await axios({
     method: 'post',
     'Content-type': 'application/json',
-    Authorization: 'Bearer '+ slackBotToken,
+    Authorization: 'Bearer '+ slack_bot_token,
     url: `${apiUrl}/views.publish`,
     data: args
   });*/
@@ -117,7 +117,7 @@ const displayHome = async (user) => {
     method:'POST',
     headers:{
       'Content-Type':'application/json',
-      'Authorization': 'Bearer ' + slackBotToken
+      'Authorization': 'Bearer ' + slack_bot_token
     },
     json: true,
     body: JSON.stringify(args)
@@ -143,7 +143,7 @@ const openModal = async (trigger_id) => {
       // Drop-down menu
       {
         "type": "input",
-        "block_id": "make_mtg_01",
+        "block_id": "make_mtg_name",
         "label": {
           "type": "plain_text",
           "text": "team",
@@ -200,13 +200,13 @@ const openModal = async (trigger_id) => {
       // Text input
       {
         "type": "input",
-        "block_id": "make_mtg_02",
+        "block_id": "make_mtg_args",
         "label": {
           "type": "plain_text",
           "text": "agenda"
         },
         "element": {
-          "action_id": "content",
+          "action_id": "first_arg",
           "type": "plain_text_input",
           "placeholder": {
             "type": "plain_text",
@@ -215,7 +215,7 @@ const openModal = async (trigger_id) => {
           "multiline": false
         },
         "element": {
-          "action_id": "content",
+          "action_id": "second_arg",
           "type": "plain_text_input",
           "placeholder": {
             "type": "plain_text",
@@ -224,7 +224,7 @@ const openModal = async (trigger_id) => {
           "multiline": false
         },
         "element": {
-          "action_id": "content",
+          "action_id": "third_arg",
           "type": "plain_text_input",
           "placeholder": {
             "type": "plain_text",
@@ -236,7 +236,7 @@ const openModal = async (trigger_id) => {
     ]
   };
   const args = {
-    token: slackBotToken,
+    token: slack_bot_token,
     trigger_id: trigger_id,
     view: JSON.stringify(modal)
   };

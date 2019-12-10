@@ -28,3 +28,5 @@ const mtgCard = async (cardObj) => {
     console.log(body);
   })
 }
+
+module.exports = {mtgCard};

@@ -1,0 +1,16 @@
+{
+  "m_id": "hogehoge",
+  "m_name": "hoge MTG",
+  "m_team": [],
+  "m_date": "YYYY-MM-DD",
+  "m_start_time": "hh:mm",
+  "m_end_time": "hh:mm",
+  "m_place": "hogehoge",
+  "m_agenda": [],
+  "m_record_url": "http://document.google.com/hogehoge",
+  "m_trello_card": "http://trello.com/hogehoge",
+  "halfway":[{"original_user_id":"hogehoge"}],
+  "attend": [],
+  "absence":[],
+  "unanswered":[],
+}

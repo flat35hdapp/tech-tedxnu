@@ -1,0 +1,10 @@
+{
+  "original_user_id": "hogehoge",
+  "fisrt_name": "taro",
+  "last_name": "yamada",
+  "mail": "yamadataro.tedxnu@gmail.com",
+  "team": ["spkr","recruit"],
+  "slack_user_id": "hogehoge",
+  "trello_user_id": "hogehoge",
+  "attend_mtg_id":[]
+}

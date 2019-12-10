@@ -1,6 +1,7 @@
+require('dotenv').config();
 const qs = require('qs');
 const axios = require('axios');
-require('dotenv').config();
+const mongo = require('../mongodb/slack.js');
 
 const apiUrl = 'https://slack.com/api';
 const slackBotToken = process.env.SLACK_BOT_TOKEN;

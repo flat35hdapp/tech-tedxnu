@@ -3,7 +3,7 @@ const qs = require('qs');
 const axios = require('axios');
 const mongo = require('../mongodb/slack.js');
 
-const apiUrl = 'https://slack.com/api';
+const api_url = 'https://slack.com/api';
 const slack_bot_token = process.env.SLACK_BOT_TOKEN;
 
 const updataView = async (user) => {
@@ -95,7 +95,7 @@ const displayHome = async (user) => {
     user_id: user,
     view: await updataView(user)
   };
-  const result = await axios.post(`${apiUrl}/views.publish`,qs.stringify(args));
+  const result = await axios.post(`${api_url}/views.publish`,qs.stringify(args));
 
   try{
     if(result.data.error){
@@ -109,11 +109,11 @@ const displayHome = async (user) => {
     method: 'post',
     'Content-type': 'application/json',
     Authorization: 'Bearer '+ slack_bot_token,
-    url: `${apiUrl}/views.publish`,
+    url: `${api_url}/views.publish`,
     data: args
   });*/
   /*const option = {
-    url :`${apiUrl}/views.publish`,
+    url :`${api_url}/views.publish`,
     method:'POST',
     headers:{
       'Content-Type':'application/json',
@@ -241,7 +241,7 @@ const openModal = async (trigger_id) => {
     view: JSON.stringify(modal)
   };
 
-  const result = await axios.post(`${apiUrl}/views.open`, qs.stringify(args));
+  const result = await axios.post(`${api_url}/views.open`, qs.stringify(args));
 }
 
 const openAgendaModal = async (trigger_id) => {

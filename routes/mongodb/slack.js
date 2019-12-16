@@ -4,12 +4,31 @@ const mongoPort = process.env.MONGODB_PORT;
 const dbName = "";
 const hostUrl = "mongodb://localhost:" + mongoPort + "/";
 
-const user = async (user_id) => {
-  const collectionName = users;
+//初期設定欄
+const users_collection = "users";
+const mtgs_collection = "mtgs";
+
+const find_user = async (user_id) => {
   const client = await mongoClient.connect(hostUrl);
   const db = await client.db(dbName);
-  const collection = db.collection(users);
-  await collection.
+  const collection = db.collection(users_collection);
+  const docs = await collection.find({'slack_user_id':user_id}).toArray();
+  client.close();
+  return docs[0];
+}
+
+const insert_mtg = async (mtg_obj) => {//書きかけ注意！！！
+  try{
+    const client = await mongoClient.connect(hostUrl);
+    const db = await client.db(dbName);
+    const collection = db.collection(mtgs_collection);
+    await collection.insert(mtg_obj);
+    return new promise();
+  }catch(err){
+    return new error();
+  }finally{
+    client.close();
+  }
 
 }
-module.exports = {user};
+module.exports = {find_user};

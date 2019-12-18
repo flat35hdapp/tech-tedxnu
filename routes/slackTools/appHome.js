@@ -2,6 +2,7 @@ require('dotenv').config();
 const qs = require('qs');
 const axios = require('axios');
 const mongo = require('../mongodb/slack.js');
+const moment = require("moment");
 
 const api_url = 'https://slack.com/api';
 const slack_bot_token = process.env.SLACK_BOT_TOKEN;
@@ -39,14 +40,26 @@ const updataView = async (user) => {
   ];
 
   //mongodbにクエリでslackのユーザーIDが含まれているチームやミーティングの情報を取ってきて、配列に格納する処理。
+  const user_obj = mongo.find_user_by_user(user)[0];
 
-  const mtgSection = (mtgObj) => {
-    const {mtg_id,mtg_name,mtg_date,mtg_start_time,mtg_end_time,mtg_place} = mtgObj;
+  const attend_mtg_id_list = user_obj.att_m_id;
+  const absence_mtg_id_list = user_obj.abs_m_id;
+  const unanswered_mtg_id_list = user_obj.una_m_id;
+
+  const attend_mtg_obj_list = mongo.find_mtgs_by_mtgs(attend_mtg_id_list);
+  const absence_mtg_obj_list = mongo.find_mtg_by_mtgs(absence_mtg_id_list);
+  const unanswered_mtg_obj_list = mongo.find_mtgs_by_mtgs(unanswered_mtg_id_list);
+  //以下のコメント部分は現行のロジックが素早く機能することを期待してコメントアウトしている。
+  /*const team_id_list = user_obj.t;
+  const mtg_obj_list = mongo.find_mtgs_by_teams(team_id_list);*/
+
+  const mtg_section = (mtg_obj,attendance) => {
+    const {mtg_id,mtg_name,mtg_date,mtg_start_time,mtg_end_time,mtg_place,attend_list,absence_list,unanswered_list} = mtg_obj;
     return {
       "type": "section",
       "text": {
         "type": "mrkdwn",
-        "text": "*" + mtg_name + " " + mtg_date + "* \n" + mtg_start_time + "—" + mtg_end_time + " | " + mtg_place +"\nStatus: *" + "" + "* "
+        "text": "*" + mtg_name + " " + mtg_date + "* \n" + mtg_start_time + "—" + mtg_end_time + " | " + mtg_place +"\nStatus: *" + attendance + "* "
       },
       "accessory": {
         "type": "overflow",
@@ -67,15 +80,32 @@ const updataView = async (user) => {
             },
             "value": "cancel_mtg"
           },
-          "action_id": mtg_id
-        ]
+        ],
+        "action_id": mtg_id
       }
     };
   }
 
-  for(let i = 0;i<array.length;i++){
-    blocks.push(mtgSection());
+  /*const push_section = (mtg_obj_list) => {
+    for(let i = 0;i<mtg_obj_list.length;i++){
+      blocks.push(mtg_section(mtg_obj_list[i],attendance));
+    }
+    callback(blocks);
+  }*/
+
+  const push_section = (mtg_obj_list,attendance) => {
+    return new Promise((resolve,reject) => {
+      for(let i = 0;i<mtg_obj_list.length;i++){
+        blocks.push(mtg_section(mtg_obj_list[i],attendance));
+      }
+      resolve(blocks);
+    });
   }
+
+  push_section(unanswered_mtg_obj_list,"未回答")
+  .then(push_section(attend_mtg_obj_list,"出席"))
+  .then(push_section(absence_mtg_obj_list,"欠席"))
+  .catch((err)=>{console.log(err)});
 
   const view = {
     type: 'home',
@@ -140,99 +170,131 @@ const openModal = async (trigger_id) => {
       text: 'Create'
     },
     blocks: [
-      // Drop-down menu
       {
-        "type": "input",
-        "block_id": "make_mtg_name",
-        "label": {
-          "type": "plain_text",
-          "text": "team",
+        "type":"input",
+        "label":{
+          "type":"plain_text",
+          "text":"Select teams"
         },
-        "element": {
-          "type": "static_select",
-          "action_id": "make_mtg_name",
-          "options": [
+        "element":{//一個しか入らないことに注意。
+          "type":"multi_static_select",
+          "placeholder":{
+            "type":"plain_text",
+            "text":"参加するチームを選んでください。"
+          },
+          "action_id":"hogehoge",//観測対象。
+          "options":[
             {
-              "text": {
-                "type": "plain_text",
-                "text": "speaker"
+              "text":{
+                "type":"plain_text",
+                "text":"All Member"
               },
-              "value": "speaker_mtg"
+              "value":"all"
             },
             {
-              "text": {
-                "type": "plain_text",
-                "text": "communication"
+              "text":{
+                "type":"plain_text",
+                "text":"Spaker Team"
               },
-              "value": "communication_mtg"
+              "value":"spk"
             },
             {
-              "text": {
-                "type": "plain_text",
-                "text": "tech"
+              "text":{
+                "type":"plain_text",
+                "text":"Communication Team"
               },
-              "value": "tech_mtg"
+              "value":"com"
             },
             {
-              "text": {
-                "type": "plain_text",
-                "text": "organize"
+              "text":{
+                "type":"plain_text",
+                "text":"Tech Team"
               },
-              "value": "organize_mtg"
+              "value":"tec"
             },
             {
-              "text": {
-                "type": "plain_text",
-                "text": "all"
+              "text":{
+                "type":"plain_text",
+                "text":"Leaders Team"
               },
-              "value": "all_mtg"
+              "value":"ldr"
             },
             {
-              "text": {
-                "type": "plain_text",
-                "text": "leaders"
+              "text":{
+                "type":"plain_text",
+                "text":"Organize Team"
               },
-              "value": "leaders_mtg"
-            },
+              "value":"org"
+            }
           ]
-        }
+        },
+        "block_id":"make_mtg_teams"
       },
-      // Text input
       {
-        "type": "input",
-        "block_id": "make_mtg_args",
-        "label": {
-          "type": "plain_text",
-          "text": "agenda"
+        "type":"input",
+        "label":{
+          "type":"plain_text",
+          "text":"Select MTG date"
         },
-        "element": {
-          "action_id": "first_arg",
-          "type": "plain_text_input",
-          "placeholder": {
-            "type": "plain_text",
-            "text": "一つ目の議題"
+        "element":{
+          "type":"datepicker",
+          "action_id":"hogehogehoge",
+          "placeholder":{
+            "type":"plain_text",
+            "text":"ミーティングの日にちを入力"
           },
-          "multiline": false
+          "initial_date":moment().add(7,'days').format("YYYY-MM-DD")
         },
-        "element": {
-          "action_id": "second_arg",
-          "type": "plain_text_input",
-          "placeholder": {
-            "type": "plain_text",
-            "text": "二つ目の議題"
-          },
-          "multiline": false
-        },
-        "element": {
-          "action_id": "third_arg",
-          "type": "plain_text_input",
-          "placeholder": {
-            "type": "plain_text",
-            "text": "三つ目の議題"
-          },
-          "multiline": false
-        }
+        "block_id":"make_mtg_date"
       },
+      {
+        "type":"input",
+        "label":{
+          "type":"plain_text",
+          "text":"Enter start time and end time."
+        },
+        "element":{
+          "type":"plain_text_input",
+          "action_id":"hogehogehogehoge",
+          "placeholder":{
+            "type":"plain_text",
+            "text":"hh-mm,hh-mm"
+          },
+          "multiline":false
+        },
+        "block_id":"make_mtg_time"
+      },
+      {
+        "type":"input",
+        "label":{
+          "type":"plain_text",
+          "text":"Enter mtg place."
+        },
+        "element":{
+          "type":"plain_text_input",
+          "action_id":"hoge3",
+          "initial_value":"名大文総",
+          "multiline":false
+        },
+        "block_id":"make_mtg_place"
+      },
+      {
+        "type":"input",
+        "label":{
+          "type":"plain_text",
+          "text":"Enter ajenda."
+        },
+        "element":{
+          "type":"plain_text_input",
+          "action_id":"hoge1",
+          "placeholder":{
+            "type":"plain_text",
+            "text":"議題をカンマ(,)区切りで入力してください。"
+          },
+          "multiline":false
+        },
+        "block_id":"make_mtg_ajenda"
+      }
     ]
   };
   const args = {
@@ -247,4 +309,5 @@ const openModal = async (trigger_id) => {
 const openAgendaModal = async (trigger_id) => {
 
 }
+
 module.exports = {displayHome,openModal};

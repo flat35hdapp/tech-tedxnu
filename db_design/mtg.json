@@ -14,3 +14,19 @@
   "absence":[],
   "unanswered":[],
 }
+{
+  "m_id":"hogehoge",
+  "m_name":"hoge MTG",
+  "m_t":[],
+  "m_date":"YYYY-MM-DD",
+  "m_s_t":"hh:mm",
+  "m_e_t":"hh:mm",
+  "m_pl":"hogehoge",
+  "m_age":[],
+  "m_rec_u":"http://document.google.com/hogehoge",
+  "m_tr_c": "http://trello.com/hogehoge",
+  "half":[{"original_user_id":"hogehoge"}],
+  "att": [],
+  "abs":[],
+  "unans":[],
+}

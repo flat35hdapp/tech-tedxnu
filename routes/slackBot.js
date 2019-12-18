@@ -6,7 +6,8 @@ require('dotenv').config();
 const slackBotToken = process.env.SLACK_BOT_TOKEN;
 
 router.post('/events',async (req,res,next) => {
-  //console.log(req.body);
+  //console.log("events");
+  console.log(req.body);
   switch(req.body.type){
     case 'url_verification':{
       res.send({challenge: req.body.challenge});
@@ -27,18 +28,39 @@ router.post('/events',async (req,res,next) => {
 
 router.post('/actions',async(req,res,next) => {
   const {token,trigger_id,user,actions,type } = JSON.parse(req.body.payload);//なぜかpayloadがオブジェクトではなく文字列で渡されるため処理している。
-  //console.log(req.body);
-  switch(actions[0].action_id){
-    case 'add_mtg': {
-      appHome.openModal(trigger_id);
-      res.sendStatus(200);
+  //console.log("actions");
+  //console.log(req.body.payload);
+  console.log(type);
+  switch (type) {
+    case 'block_actions':{
+      switch(actions[0].action_id){
+        case 'add_mtg': {
+          appHome.openModal(trigger_id);
+          res.sendStatus(200);
+          break;
+        }
+        case '': {
+          break;
+        }
+        default : {
+          console.log(req.body);
+          res.sendStatus(404);
+        }
+      }
       break;
     }
-    case '': {
 
+    case 'view_submission':{
+      console.log("中に入った。");
+      res.sendStatus(200);
+      res.end;
+      break;
     }
-    default : {res.sendStatus(404);}
+
+    default:{}
+
   }
+
 })
 
 module.exports = {router};

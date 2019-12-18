@@ -8,7 +8,7 @@ const api_url = 'https://slack.com/api';
 const slack_bot_token = process.env.SLACK_BOT_TOKEN;
 
 const updataView = async (user) => {
-  let blocks = [
+  let header_blocks = [
     {
       type:'section',
       text:{
@@ -38,6 +38,7 @@ const updataView = async (user) => {
       type: 'divider'
     },
   ];
+  let mtg_blocks = []
 
   //mongodbにクエリでslackのユーザーIDが含まれているチームやミーティングの情報を取ってきて、配列に格納する処理。
   const user_obj = mongo.find_user_by_user(user)[0];
@@ -49,11 +50,8 @@ const updataView = async (user) => {
   const attend_mtg_obj_list = mongo.find_mtgs_by_mtgs(attend_mtg_id_list);
   const absence_mtg_obj_list = mongo.find_mtg_by_mtgs(absence_mtg_id_list);
   const unanswered_mtg_obj_list = mongo.find_mtgs_by_mtgs(unanswered_mtg_id_list);
-  //以下のコメント部分は現行のロジックが素早く機能することを期待してコメントアウトしている。
-  /*const team_id_list = user_obj.t;
-  const mtg_obj_list = mongo.find_mtgs_by_teams(team_id_list);*/
 
-  const mtg_section = (mtg_obj,attendance) => {
+  const mtg_obj_convert_section = (mtg_obj,attendance) => {//一つのミーティングオブジェクトを受け入れて、一つのミーティングセクションを返すだけの関数。
     const {mtg_id,mtg_name,mtg_date,mtg_start_time,mtg_end_time,mtg_place,attend_list,absence_list,unanswered_list} = mtg_obj;
     return {
       "type": "section",
@@ -86,26 +84,29 @@ const updataView = async (user) => {
     };
   }
 
-  /*const push_section = (mtg_obj_list) => {
-    for(let i = 0;i<mtg_obj_list.length;i++){
-      blocks.push(mtg_section(mtg_obj_list[i],attendance));
-    }
-    callback(blocks);
-  }*/
-
-  const push_section = (mtg_obj_list,attendance) => {
-    return new Promise((resolve,reject) => {
+  const mtg_obj_list_convert_section_list = (mtg_obj_list,attendance) => {//ミーティングオブジェクトの配列をセクションのリストに変換するだけの関数。
+    const section_list = [];
+    return new Promise(()=>{
       for(let i = 0;i<mtg_obj_list.length;i++){
-        blocks.push(mtg_section(mtg_obj_list[i],attendance));
+        section_list.push(mtg_obj_convert_section(mtg_obj_list[i],attendance));
       }
-      resolve(blocks);
+      resolve(section_list);
     });
   }
 
-  push_section(unanswered_mtg_obj_list,"未回答")
-  .then(push_section(attend_mtg_obj_list,"出席"))
-  .then(push_section(absence_mtg_obj_list,"欠席"))
-  .catch((err)=>{console.log(err)});
+  const mtg_list = Promise.all(
+    [
+      mtg_obj_list_convert_section_list(unanswered_mtg_obj_list,"未回答"),
+      mtg_obj_list_convert_section_list(attend_mtg_obj_list,"出席"),
+      mtg_obj_list_convert_section_list(absence_mtg_obj_list,"欠席")
+    ]).then((list)=>{
+    return new Promise(()=>{
+      for (var i = 0; i < list.length; i++) {
+        mtg_blocks.push(i);
+      }
+      resolve(mtg_blocks);
+    })
+  });
 
   const view = {
     type: 'home',
@@ -113,7 +114,7 @@ const updataView = async (user) => {
       type:'plain_text',
       text:'att_abs_home'
     },
-    blocks:blocks
+    blocks:header_blocks.push(mtg_list)
   };
   //return JSON.stringify(view);
   return JSON.stringify(view);

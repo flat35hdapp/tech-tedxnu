@@ -53,35 +53,73 @@ const updateView = async (user) => {
 
   const mtg_obj_convert_section = (mtg_obj,attendance) => {//一つのミーティングオブジェクトを受け入れて、一つのミーティングセクションを返すだけの関数。
     const {mtg_id,mtg_name,mtg_date,mtg_start_time,mtg_end_time,mtg_place,attend_list,absence_list,unanswered_list} = mtg_obj;
-    return {
-      "type": "section",
-      "text": {
-        "type": "mrkdwn",
-        "text": "*" + mtg_name + " " + mtg_date + "* \n" + mtg_start_time + "—" + mtg_end_time + " | " + mtg_place +"\nStatus: *" + attendance + "* "
+    return [
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "*" + mtg_name + " " + mtg_date + "* \n" + mtg_start_time + "—" + mtg_end_time + " | " + mtg_place +"\nStatus: *" + attendance + "* "
+        },
+        "accessory": {
+          "type": "overflow",
+          "options": [
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "Edit the agenda",
+                "emoji": true
+              },
+              "value": "edit_agenda"
+            },
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "Cansel this MTG",
+                "emoji": true
+              },
+              "value": "cancel_mtg"
+            },
+          ],
+          "action_id": mtg_id
+        }
       },
-      "accessory": {
-        "type": "overflow",
-        "options": [
+      {
+        "type":"action",
+        "elements":[
           {
-            "text": {
-              "type": "plain_text",
-              "text": "Edit the agenda",
-              "emoji": true
+            "type":"button",
+            "text"{
+              "type":"plain_text",
+              "text":"出席"
             },
-            "value": "edit_agenda"
+            "action_id":"",
+            "value":"attend",
+            "style":"primary"
           },
           {
-            "text": {
-              "type": "plain_text",
-              "text": "Cansel this MTG",
-              "emoji": true
+            "type":"button",
+            "text"{
+              "type":"plain_text",
+              "text":"欠席"
             },
-            "value": "cancel_mtg"
+            "action_id":"",
+            "value":"absence",
+            "style":"danger"
           },
+          {
+            "type":"button",
+            "text"{
+              "type":"plain_text",
+              "text":"その他"
+            },
+            "action_id":"",
+            "value":"other",
+            "style":""
+          }
         ],
-        "action_id": mtg_id
+        "block_id":"",
       }
-    };
+    ];
   }
 
   const mtg_obj_list_convert_section_list = (mtg_obj_list,attendance) => {//ミーティングオブジェクトの配列をセクションのリストに変換するだけの関数。
@@ -102,7 +140,7 @@ const updateView = async (user) => {
     ]).then((list)=>{
     return new Promise(()=>{
       for (var i = 0; i < list.length; i++) {
-        mtg_blocks.push(i);
+        mtg_blocks.push(list[i]);
       }
       resolve(mtg_blocks);
     })

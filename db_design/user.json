@@ -8,6 +8,7 @@
   "trello_user_id": "hogehoge",
   "attend_mtg_id":[],
   "absence_mtg_id":[],
+  "other_mtg_id":[],
   "unanswered_mtg_id":[]
 },
 

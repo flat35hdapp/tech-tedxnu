@@ -27,10 +27,10 @@ router.post('/events',async (req,res,next) => {
 })
 
 router.post('/actions',async(req,res,next) => {
-  const {token,trigger_id,user,actions,type } = JSON.parse(req.body.payload);//なぜかpayloadがオブジェクトではなく文字列で渡されるため処理している。
+  const {token,trigger_id,user,actions,type,view} = JSON.parse(req.body.payload);//なぜかpayloadがオブジェクトではなく文字列で渡されるため処理している。
   //console.log("actions");
   //console.log(req.body.payload);
-  console.log(type);
+
   switch (type) {
     case 'block_actions':{
       switch(actions[0].action_id){
@@ -51,6 +51,8 @@ router.post('/actions',async(req,res,next) => {
     }
 
     case 'view_submission':{
+      if()
+      console.log(view.state.values);
       console.log("中に入った。");
       res.sendStatus(200);
       res.end;

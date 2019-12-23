@@ -7,7 +7,7 @@ const moment = require("moment");
 const api_url = 'https://slack.com/api';
 const slack_bot_token = process.env.SLACK_BOT_TOKEN;
 
-const updataView = async (user) => {
+const updateView = async (user) => {
   let header_blocks = [
     {
       type:'section',
@@ -48,7 +48,7 @@ const updataView = async (user) => {
   const unanswered_mtg_id_list = user_obj.una_m_id;
 
   const attend_mtg_obj_list = mongo.find_mtgs_by_mtgs(attend_mtg_id_list);
-  const absence_mtg_obj_list = mongo.find_mtg_by_mtgs(absence_mtg_id_list);
+  const absence_mtg_obj_list = mongo.find_mtgs_by_mtgs(absence_mtg_id_list);
   const unanswered_mtg_obj_list = mongo.find_mtgs_by_mtgs(unanswered_mtg_id_list);
 
   const mtg_obj_convert_section = (mtg_obj,attendance) => {//一つのミーティングオブジェクトを受け入れて、一つのミーティングセクションを返すだけの関数。
@@ -124,7 +124,7 @@ const displayHome = async (user) => {
   const args = {
     token: slack_bot_token,
     user_id: user,
-    view: await updataView(user)
+    view: await updateView(user)
   };
   const result = await axios.post(`${api_url}/views.publish`,qs.stringify(args));
 

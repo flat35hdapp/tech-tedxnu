@@ -12,7 +12,7 @@ const find_user_by_user = async (user_id) => {
   const client = await mongoClient.connect(hostUrl);
   const db = await client.db(dbName);
   const collection = db.collection(users_collection);
-  const docs = await collection.find({'sl_u_id':user_id}).toArray();
+  const docs = await collection.findOne({'sl_u_id':user_id}).toArray();
   client.close();
   return docs[0];
 }
@@ -31,4 +31,13 @@ const insert_mtg = async (mtg_obj) => {//書きかけ注意！！！
   }
 }
 
-module.exports = {find_user_by_user};
+const find_mtgs_by_mtgs = async (mtg_id_list) => {
+  const client = await mongoClient.connect(hostUrl);
+  const db = await client.db(dbName);
+  const collection = db.collection(mtgs_collection);
+  await Promise.all(mtg_id_list.map(async ()=>{
+
+  }))
+}
+
+module.exports = {find_user_by_user,find_mtgs_by_mtgs};

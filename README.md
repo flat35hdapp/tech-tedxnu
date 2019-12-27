@@ -11,3 +11,4 @@ SlackのEvent request URLとaction URLをそれぞれ `http://hogehoge.com/api/e
 /routes/slackBot.js : /app/slack へのリクエストを捌く部分。  
 /routes/slackTools : slackBot.js の機能でモジュール化したものを入れておくディレクトリ。  
 /routes/  
+/db_design : mongodbのデータベース設計。

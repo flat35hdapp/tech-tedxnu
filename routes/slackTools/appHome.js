@@ -52,74 +52,129 @@ const updateView = async (user) => {
   const unanswered_mtg_obj_list = mongo.find_mtgs_by_mtgs(unanswered_mtg_id_list);
 
   const mtg_obj_convert_section = (mtg_obj,attendance) => {//一つのミーティングオブジェクトを受け入れて、一つのミーティングセクションを返すだけの関数。
-    const {mtg_id,mtg_name,mtg_date,mtg_start_time,mtg_end_time,mtg_place,attend_list,absence_list,unanswered_list} = mtg_obj;
-    return [
-      {
-        "type": "section",
-        "text": {
-          "type": "mrkdwn",
-          "text": "*" + mtg_name + " " + mtg_date + "* \n" + mtg_start_time + "—" + mtg_end_time + " | " + mtg_place +"\nStatus: *" + attendance + "* "
-        },
-        "accessory": {
-          "type": "overflow",
-          "options": [
-            {
-              "text": {
-                "type": "plain_text",
-                "text": "Edit the agenda",
-                "emoji": true
-              },
-              "value": "edit_agenda"
-            },
-            {
-              "text": {
-                "type": "plain_text",
-                "text": "Cansel this MTG",
-                "emoji": true
-              },
-              "value": "cancel_mtg"
-            },
-          ],
-          "action_id": mtg_id
-        }
-      },
-      {
-        "type":"action",
-        "elements":[
-          {
-            "type":"button",
-            "text"{
-              "type":"plain_text",
-              "text":"出席"
-            },
-            "action_id":"",
-            "value":"attend",
-            "style":"primary"
+    const {mtg_id,mtg_name,mtg_date,mtg_start_time,mtg_end_time,mtg_place,m_age,attend_list,absence_list,unanswered_list} = mtg_obj;
+    if(attendance == "未回答"){
+      return [
+        {
+          "type": "section",
+          "text": {
+            "type": "mrkdwn",
+            "text": "*" + mtg_name + " " + mtg_date + "* \n" + mtg_start_time + "—" + mtg_end_time + " | " + mtg_place +"\nStatus: *" + attendance + "* "
           },
-          {
-            "type":"button",
-            "text"{
-              "type":"plain_text",
-              "text":"欠席"
-            },
-            "action_id":"",
-            "value":"absence",
-            "style":"danger"
-          },
-          {
-            "type":"button",
-            "text"{
-              "type":"plain_text",
-              "text":"その他"
-            },
-            "action_id":"",
-            "value":"other",
-            "style":""
+          "accessory": {
+            "type": "overflow",
+            "options": [
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Edit the agenda",
+                  "emoji": true
+                },
+                "value": "edit_agenda"
+              },
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Cansel this MTG",
+                  "emoji": true
+                },
+                "value": "cancel_mtg"
+              },
+            ],
+            "action_id": mtg_id
           }
-        ],
-        "block_id":"",
-      }
-    ];
+        },
+        {
+          "type":"action",
+          "elements":[
+            {
+              "type":"button",
+              "text":{
+                "type":"plain_text",
+                "text":"出席"
+              },
+              "action_id":"",
+              "value":"attend",
+              "style":"primary"
+            },
+            {
+              "type":"button",
+              "text":{
+                "type":"plain_text",
+                "text":"欠席"
+              },
+              "action_id":"",
+              "value":"absence",
+              "style":"danger"
+            },
+            {
+              "type":"button",
+              "text":{
+                "type":"plain_text",
+                "text":"その他"
+              },
+              "action_id":"",
+              "value":"other",
+              "style":""
+            },
+            {
+              "type":"button",
+              "text":{
+                "type":"plain_text",
+                "text":"詳細"
+              },
+              "action_id":"",
+              "value":"view_detail_of_mtg",
+              "style":""
+            }
+          ],
+          "block_id":"",
+        }
+      ];
+    }else{
+      return [
+        {
+          "type": "section",
+          "text": {
+            "type": "mrkdwn",
+            "text": "*" + mtg_name + " " + mtg_date + "* \n" + mtg_start_time + "—" + mtg_end_time + " | " + mtg_place +"\nStatus: *" + attendance + "* "
+          },
+          "accessory": {
+            "type": "overflow",
+            "options": [
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Edit the agenda",
+                  "emoji": true
+                },
+                "value": "edit_agenda"
+              },
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Cansel this MTG",
+                  "emoji": true,
+                },
+                "value": "cancel_mtg"
+              },
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "change attendance",
+                  "emoji": true
+                },
+                "value": "change_attendance"
+              }
+            ],
+            "confirm":{
+
+            },
+            "action_id": mtg_id
+          }
+        }
+      ];
+    }
   }
 
   const mtg_obj_list_convert_section_list = (mtg_obj_list,attendance) => {//ミーティングオブジェクトの配列をセクションのリストに変換するだけの関数。

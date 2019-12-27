@@ -4,7 +4,7 @@
   "description": "this product make tedxnuer happier.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint":"eslint routes"
   },
   "repository": {
     "type": "git",
@@ -23,5 +23,8 @@
     "moment": "^2.24.0",
     "mongodb": "^3.4.0",
     "qs": "^6.9.1"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0"
   }
 }

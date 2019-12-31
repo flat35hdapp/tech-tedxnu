@@ -19,6 +19,7 @@ router.post('/events',async (req,res,next) => {
         console.log('app_home_opend');
         //console.log(typeof req.body.event);
         appHome.displayHome(user);
+        res.sendStatus(200);
       }
       break;
     }
@@ -51,11 +52,10 @@ router.post('/actions',async(req,res,next) => {
     }
 
     case 'view_submission':{
-      if()
+
       console.log(view.state.values);
       console.log("中に入った。");
-      res.sendStatus(200);
-      res.end;
+      res.send("");
       break;
     }
 

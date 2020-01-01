@@ -210,14 +210,7 @@ const displayHome = async (user) => {
     view: await updateView(user)
   };
   const result = await axios.post(`${api_url}/views.publish`,qs.stringify(args));
-
-  try{
-    if(result.data.error){
-      console.log(result.data.error);
-    }
-  }catch(e){
-    console.log(e);
-  }
+  return result;
   //axiosが不安定になったらrequestで実装するときに使う。
   /*const result = await axios({
     method: 'post',
@@ -266,7 +259,7 @@ const open_make_mtg_modal = async (trigger_id) => {
             "type":"plain_text",
             "text":"参加するチームを選んでください。"
           },
-          "action_id":"hogehoge",//観測対象。
+          "action_id":"mtg_teams",//観測対象。
           "options":[
             {
               "text":{
@@ -322,7 +315,7 @@ const open_make_mtg_modal = async (trigger_id) => {
         },
         "element":{
           "type":"datepicker",
-          "action_id":"hogehogehoge",
+          "action_id":"mtg_date",
           "placeholder":{
             "type":"plain_text",
             "text":"ミーティングの日にちを入力"
@@ -335,18 +328,35 @@ const open_make_mtg_modal = async (trigger_id) => {
         "type":"input",
         "label":{
           "type":"plain_text",
-          "text":"Enter start time and end time."
+          "text":"Enter start time."
         },
         "element":{
           "type":"plain_text_input",
-          "action_id":"hogehogehogehoge",
+          "action_id":"mtg_start_time",
           "placeholder":{
             "type":"plain_text",
-            "text":"hh-mm,hh-mm"
+            "text":"hh:mm"
           },
           "multiline":false
         },
-        "block_id":"make_mtg_time"
+        "block_id":"make_mtg_start_time"
+      },
+      {
+        "type":"input",
+        "label":{
+          "type":"plain_text",
+          "text":"Enter end time."
+        },
+        "element":{
+          "type":"plain_text_input",
+          "action_id":"mtg_end_time",
+          "placeholder":{
+            "type":"plain_text",
+            "text":"hh:mm"
+          },
+          "multiline":false
+        },
+        "block_id":"make_mtg_end_time"
       },
       {
         "type":"input",
@@ -356,7 +366,7 @@ const open_make_mtg_modal = async (trigger_id) => {
         },
         "element":{
           "type":"plain_text_input",
-          "action_id":"hoge3",
+          "action_id":"mtg_place",
           "initial_value":"名大文総",
           "multiline":false
         },
@@ -370,7 +380,7 @@ const open_make_mtg_modal = async (trigger_id) => {
         },
         "element":{
           "type":"plain_text_input",
-          "action_id":"hoge1",
+          "action_id":"mtg_agenda",
           "placeholder":{
             "type":"plain_text",
             "text":"議題をカンマ(,)区切りで入力してください。"

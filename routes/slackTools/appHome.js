@@ -1,3 +1,4 @@
+/*global process*/
 require('dotenv').config();
 const qs = require('qs');
 const axios = require('axios');
@@ -38,21 +39,20 @@ const updateView = async (user) => {
       type: 'divider'
     },
   ];
-  let mtg_blocks = []
 
   //mongodbにクエリでslackのユーザーIDが含まれているチームやミーティングの情報を取ってきて、配列に格納する処理。
-  const user_obj = mongo.find_user_by_user(user)[0];
+  const user_obj = mongo.find({sl_u_id:user},user)[0];
 
   const attend_mtg_id_list = user_obj.att_m_id;
   const absence_mtg_id_list = user_obj.abs_m_id;
   const unanswered_mtg_id_list = user_obj.una_m_id;
 
-  const attend_mtg_obj_list = mongo.find_mtgs_by_mtgs(attend_mtg_id_list);
-  const absence_mtg_obj_list = mongo.find_mtgs_by_mtgs(absence_mtg_id_list);
-  const unanswered_mtg_obj_list = mongo.find_mtgs_by_mtgs(unanswered_mtg_id_list);
+  const attend_mtg_obj_list = mongo.find(attend_mtg_id_list.map(id=>{return {"m_id":id};}));
+  const absence_mtg_obj_list = mongo.find(absence_mtg_id_list.map(id=>{return {"m_id":id};}));
+  const unanswered_mtg_obj_list = mongo.find(unanswered_mtg_id_list.map(id=>{return {"m_id":id};}));
 
   const mtg_obj_convert_section = (mtg_obj,attendance) => {//一つのミーティングオブジェクトを受け入れて、一つのミーティングセクションを返すだけの関数。
-    const {mtg_id,mtg_name,mtg_date,mtg_start_time,mtg_end_time,mtg_place,m_age,attend_list,absence_list,unanswered_list} = mtg_obj;
+    const {mtg_id,mtg_name,mtg_date,mtg_start_time,mtg_end_time,mtg_place,} = mtg_obj;
     if(attendance == "未回答"){
       return [
         {
@@ -177,14 +177,11 @@ const updateView = async (user) => {
     }
   }
 
-  const mtg_obj_list_convert_section_list = (mtg_obj_list,attendance) => {//ミーティングオブジェクトの配列をセクションのリストに変換するだけの関数。
-    const section_list = [];
-    return new Promise(()=>{
-      for(let i = 0;i<mtg_obj_list.length;i++){
-        section_list.push(mtg_obj_convert_section(mtg_obj_list[i],attendance));
-      }
-      resolve(section_list);
+  const mtg_obj_list_convert_section_list = async (mtg_obj_list,attendance) => {//ミーティングオブジェクトの配列をセクションのリストに変換するだけの関数。
+    const section_list = mtg_obj_list.map((obj)=>{
+      return mtg_obj_convert_section(obj,attendance);
     });
+    return section_list;
   }
 
   const mtg_list = Promise.all(
@@ -192,14 +189,7 @@ const updateView = async (user) => {
       mtg_obj_list_convert_section_list(unanswered_mtg_obj_list,"未回答"),
       mtg_obj_list_convert_section_list(attend_mtg_obj_list,"出席"),
       mtg_obj_list_convert_section_list(absence_mtg_obj_list,"欠席")
-    ]).then((list)=>{
-    return new Promise(()=>{
-      for (var i = 0; i < list.length; i++) {
-        mtg_blocks.push(list[i]);
-      }
-      resolve(mtg_blocks);
-    })
-  });
+    ]);
 
   const view = {
     type: 'home',
@@ -252,7 +242,7 @@ const displayHome = async (user) => {
 
 }
 
-const openModal = async (trigger_id) => {
+const open_make_mtg_modal = async (trigger_id) => {
   const modal = {
     type: 'modal',
     title: {
@@ -398,10 +388,20 @@ const openModal = async (trigger_id) => {
   };
 
   const result = await axios.post(`${api_url}/views.open`, qs.stringify(args));
+  return result;
 }
 
-const openAgendaModal = async (trigger_id) => {
-
+const open_mtg_detail_modal = async (trigger_id) => {
+  const mtg_obj = mongo.find({"_id":trigger_id});
+  const {m_name,m_date,m_s_t,m_e_t,} = mtg_obj;
+  const modal = {};
+  const args = {
+    token: slack_bot_token,
+    trigger_id: trigger_id,
+    view: JSON.stringify(modal)
+  };
+  const result = await axios.post(`${api_url}/views.open`, qs.stringify(args));
+  return result;
 }
 
-module.exports = {displayHome,openModal};
+module.exports = {displayHome,open_make_mtg_modal,open_mtg_detail_modal};

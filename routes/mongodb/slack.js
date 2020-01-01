@@ -1,38 +1,44 @@
+/*global process*/
 const mongodb = require('mongodb');
-const mongoClient = mongodb.mongoClient;
+const mongoClient = mongodb.MongoClient;
 const mongoPort = process.env.MONGODB_PORT;
 const dbName = "tech_tedxnu";
 const hostUrl = "mongodb://localhost:" + mongoPort + "/";
 
-//初期設定欄
-const users_collection = "users";
-const mtgs_collection = "mtgs";
-
-const find_user_by_user = async (user_id) => {
-  const client = await mongoClient.connect(hostUrl);
+//find関数。引数にオベジェクトと配列を取り、それに基づきqueryをmongodbに投げる。
+const find = async (query,collection_name) => {
+  if(Array.isArray(query)){
+    const client = await mongoClient.connect(hostUrl,{useUnifiedTopology: true});
+    const db = await client.db(dbName);
+    const collection = await db.collection(collection_name);
+    const docs = await Promise.all(query.map((q)=>{
+      return collection.find(q).toArray();
+    }));
+    client.close();
+    return docs;
+  }else{
+    const client = await mongoClient.connect(hostUrl,{useUnifiedTopology: true});
+    const db = await client.db(dbName);
+    const collection = await db.collection(collection_name);
+    const docs = await collection.find(query).toArray();
+    client.close();
+    return docs;
+  }
+};
+//insertしてくれる。引数に配列かオブジェクトを取り、それに基づいてmongodbにデータ挿入を行う。
+const insert = async (obj,collection_name) => {
+  let docs = [];
+  if(Array.isArray(obj)){
+    docs = obj;
+  }else{
+    docs[0] = obj;
+  }
+  const client = await mongoClient.connect(hostUrl,{useUnifiedTopology: true});
   const db = await client.db(dbName);
-  const collection = db.collection(users_collection);
-  const docs = await collection.findOne({'sl_u_id':user_id}).toArray();
+  const collection = await db.collection(collection_name);
+  const result = await collection.insertMany(docs);
   client.close();
-  return docs[0];
-}
+  return result
+};
 
-const insert_mtg = async (mtg_obj) => {//書きかけ注意！！！
-
-  const client = await mongoClient.connect(hostUrl);
-  const db = await client.db(dbName);
-  const collection = db.collection(mtgs_collection);
-  await collection.insert(mtg_obj);
-
-
-  client.close();
-
-}
-
-const find_mtgs_by_mtgs = async (mtg_id_list) => {
-  const client = await mongoClient.connect(hostUrl);
-  const db = await client.db(dbName);
-  const collection = db.collection(mtgs_collection);
-}
-
-module.exports = {find_user_by_user,find_mtgs_by_mtgs,insert_mtg};
+module.exports = {find,insert};

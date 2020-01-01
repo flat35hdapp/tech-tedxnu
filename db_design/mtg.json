@@ -1,5 +1,4 @@
 {
-  "m_id": "hogehoge",
   "m_name": "hoge MTG",
   "m_team": [],
   "m_date": "YYYY-MM-DD",
@@ -15,7 +14,6 @@
   "unanswered":[],
 }
 {
-  "m_id":"hogehoge",
   "m_name":"hoge MTG",
   "m_t":[],
   "m_date":"YYYY-MM-DD",

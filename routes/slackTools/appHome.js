@@ -38,10 +38,29 @@ const updateView = async (user) => {
     {
       type: 'divider'
     },
+    {
+      type:'section',
+      text:{
+        type:'mrkdwn',
+        text:"*PAY ATTENTION!!* \nBefore you start signing up, you will get Trello user id. trello user id looks like @user12345678 unless you changed your id."
+      },
+      accessory:{
+        type: "button",
+        action_id: "sign_up",
+        text: {
+          type: "plain_text",
+          text: "Sign up",
+          emoji: true
+        }
+      }
+    },
+    {
+      type: 'divider'
+    }
   ];
 
   //mongodbにクエリでslackのユーザーIDが含まれているチームやミーティングの情報を取ってきて、配列に格納する処理。
-  const user_obj = mongo.find({sl_u_id:user},user)[0];
+  /*const user_obj = mongo.find({sl_u_id:user},user)[0];
 
   const attend_mtg_id_list = user_obj.att_m_id;
   const absence_mtg_id_list = user_obj.abs_m_id;
@@ -189,7 +208,7 @@ const updateView = async (user) => {
       mtg_obj_list_convert_section_list(unanswered_mtg_obj_list,"未回答"),
       mtg_obj_list_convert_section_list(attend_mtg_obj_list,"出席"),
       mtg_obj_list_convert_section_list(absence_mtg_obj_list,"欠席")
-    ]);
+    ]);*/
 
   const view = {
     type: 'home',
@@ -197,7 +216,7 @@ const updateView = async (user) => {
       type:'plain_text',
       text:'att_abs_home'
     },
-    blocks:header_blocks.push(mtg_list)
+    blocks:header_blocks//.push(mtg_list)
   };
   //return JSON.stringify(view);
   return JSON.stringify(view);
@@ -414,4 +433,155 @@ const open_mtg_detail_modal = async (trigger_id) => {
   return result;
 }
 
-module.exports = {displayHome,open_make_mtg_modal,open_mtg_detail_modal};
+const open_sign_up_modal = async (trigger_id) => {
+  const modal = {
+    type: 'modal',
+    title: {
+      type: 'plain_text',
+      text: 'Sign up tech-tedxnu'
+    },
+    submit: {
+      type: 'plain_text',
+      text: 'Sign Up!'
+    },
+    blocks:[
+      {
+        "type":"input",
+        "label":{
+          "type":"plain_text",
+          "text":"Enter first name."
+        },
+        "element":{
+          "type":"plain_text_input",
+          "action_id":"sign_up_f_name",
+          "placeholder":{
+            "type":"plain_text",
+            "text":"Ren"
+          },
+          "multiline":false
+        },
+        "block_id":"sign_up_first_name"
+      },
+      {
+        "type":"input",
+        "label":{
+          "type":"plain_text",
+          "text":"Enter last name."
+        },
+        "element":{
+          "type":"plain_text_input",
+          "action_id":"sign_up_l_name",
+          "placeholder":{
+            "type":"plain_text",
+            "text":"Ueda"
+          },
+          "multiline":false
+        },
+        "block_id":"sign_up_last_name"
+      },
+      {
+        "type":"input",
+        "label":{
+          "type":"plain_text",
+          "text":"Enter email address."
+        },
+        "element":{
+          "type":"plain_text_input",
+          "action_id":"sign_up_email",
+          "placeholder":{
+            "type":"plain_text",
+            "text":"uedaren.tedxnu@gmail.com"
+          },
+          "multiline":false
+        },
+        "block_id":"sign_up_email"
+      },
+      {
+        "type":"input",
+        "label":{
+          "type":"plain_text",
+          "text":"Select teams"
+        },
+        "element":{
+          "type":"multi_static_select",
+          "placeholder":{
+            "type":"plain_text",
+            "text":"所属チームを選択してください。"
+          },
+          "action_id":"sign_up_t",
+          "options":[
+            {
+              "text":{
+                "type":"plain_text",
+                "text":"All Member"
+              },
+              "value":"all"
+            },
+            {
+              "text":{
+                "type":"plain_text",
+                "text":"Spaker Team"
+              },
+              "value":"spk"
+            },
+            {
+              "text":{
+                "type":"plain_text",
+                "text":"Communication Team"
+              },
+              "value":"com"
+            },
+            {
+              "text":{
+                "type":"plain_text",
+                "text":"Tech Team"
+              },
+              "value":"tec"
+            },
+            {
+              "text":{
+                "type":"plain_text",
+                "text":"Leaders Team"
+              },
+              "value":"ldr"
+            },
+            {
+              "text":{
+                "type":"plain_text",
+                "text":"Organize Team"
+              },
+              "value":"org"
+            }
+          ]
+        },
+        "block_id":"sign_up_teams"
+      },
+      {
+        "type":"input",
+        "label":{
+          "type":"plain_text",
+          "text":"Enter your trello user name."
+        },
+        "element":{
+          "type":"plain_text_input",
+          "action_id":"sign_up_trello_user_name",
+          "placeholder":{
+            "type":"plain_text",
+            "text":"@user12345678"
+          },
+          "multiline":false
+        },
+        "block_id":"sign_up_trello"
+      },
+    ]
+  };
+  const args = {
+    token: process.env.SLACK_BOT_TOKEN,
+    trigger_id: trigger_id,
+    view: JSON.stringify(modal)
+  };
+  const result = await axios.post(`${api_url}/views.open`, qs.stringify(args));
+  return result;
+}
+
+module.exports = {displayHome,open_make_mtg_modal,open_mtg_detail_modal,open_sign_up_modal};

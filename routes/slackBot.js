@@ -2,12 +2,12 @@
 const express = require('express');
 const router = express.Router();
 const appHome = require('./slackTools/appHome');
-const modalHub = require('./slackTools/modalHub');
+const modalActionHub = require('./slackTools/modalActionHub');
 require('dotenv').config();
 
 router.post('/events',async (req,res) => {
   //console.log("events");
-  console.log(req.body);
+  //console.log(req.body);
   switch(req.body.type){
     case 'url_verification':{
       res.send({challenge: req.body.challenge});
@@ -30,7 +30,7 @@ router.post('/events',async (req,res) => {
 router.post('/actions',async(req,res) => {
   const {token,trigger_id,actions,type,view} = JSON.parse(req.body.payload);//なぜかpayloadがオブジェクトではなく文字列で渡されるため処理している。
   //console.log("actions");
-  //console.log(req.body.payload);
+  console.log(req.body.payload);
   if(token == process.env.SLACK_EVENT_TOKEN){
     switch (type) {
       case 'block_actions':{
@@ -40,7 +40,9 @@ router.post('/actions',async(req,res) => {
             res.sendStatus(200);
             break;
           }
-          case '': {
+          case 'sign_up': {
+            appHome.open_sign_up_modal(trigger_id);
+            res.sendStatus(200);
             break;
           }
           default : {
@@ -51,9 +53,10 @@ router.post('/actions',async(req,res) => {
         break;
       }
       case 'view_submission':{
+        console.log(req.body);
         console.log(view.state.values)
         res.send("");
-        modalHub.make_mtg(view.state.values);
+        modalActionHub.make_mtg(view.state.values);
         break;
       }
     }

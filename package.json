@@ -4,7 +4,7 @@
   "description": "this product make tedxnuer happier.",
   "main": "index.js",
   "scripts": {
-    "lint":"eslint routes"
+    "lint": "eslint routes"
   },
   "repository": {
     "type": "git",
@@ -22,7 +22,9 @@
     "express": "^4.17.1",
     "moment": "^2.24.0",
     "mongodb": "^3.4.0",
-    "qs": "^6.9.1"
+    "qs": "^6.9.1",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.5"
   },
   "devDependencies": {
     "eslint": "^6.8.0"

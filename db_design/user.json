@@ -1,5 +1,4 @@
 {
-  "original_user_id": "hogehoge",
   "fisrt_name": "taro",
   "last_name": "yamada",
   "mail": "yamadataro.tedxnu@gmail.com",
@@ -13,7 +12,6 @@
 },
 
 {
-  "ori_u_id":"hogehoge",
   "f_name":"taro",
   "l_name":"yamada",
   "mail":"yamadataro.tedxnu@gmail.com",

@@ -38,7 +38,6 @@ const insert = async (obj,collection_name) => {
   const collection = await db.collection(collection_name);
   const result = await collection.insertMany(docs);
   client.close();
-  console.log(result);
   return result
 };
 //指定したコレクションの指定した一つのアイテムのうちの、指定した一つのリストに配列を一つ追加する関数。
@@ -52,11 +51,19 @@ const update_list = async (where,set,collection_name) => {
   await list.push(set[target_key]);
   const setting = await {$set:{[target_key]:list}};
   const update_result = await collection.updateMany(where,setting);
-  await collection.find(where).toArray();
   client.close();
   return update_result;
 };
 
+const update = async (where,set,collection_name) => {
+  const client = await mongoClient.connect(hostUrl,{useUnifiedTopology: true});
+  const db = await client.db(dbName);
+  const collection = await db.collection(collection_name);
+  const update_result = await collection.updateMany(where,set);
+  client.close();
+  return update_result;
+};
+//mongo のIDの文字列を入れるとmongoID objを返す。
 const id = async (id) => {return mongodb.ObjectID(id)};
 
-module.exports = {find,insert,update_list,id};
+module.exports = {find,insert,update_list,update,id};

@@ -230,33 +230,12 @@ const displayHome = async (user) => {
   };
   const result = await axios.post(`${api_url}/views.publish`,qs.stringify(args));
   return result;
-  //axiosが不安定になったらrequestで実装するときに使う。
-  /*const result = await axios({
-    method: 'post',
-    'Content-type': 'application/json',
-    Authorization: 'Bearer '+ slack_bot_token,
-    url: `${api_url}/views.publish`,
-    data: args
-  });*/
-  /*const option = {
-    url :`${api_url}/views.publish`,
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'Authorization': 'Bearer ' + slack_bot_token
-    },
-    json: true,
-    body: JSON.stringify(args)
-  };
-  request(option ,(err,res,body)=>{
-    console.log(body);
-  });*/
-
 }
 
 const open_make_mtg_modal = async (trigger_id) => {
   const modal = {
     type: 'modal',
+    callback_id:"make_mtg",
     title: {
       type: 'plain_text',
       text: 'Create a MTG'
@@ -436,6 +415,7 @@ const open_mtg_detail_modal = async (trigger_id) => {
 const open_sign_up_modal = async (trigger_id) => {
   const modal = {
     type: 'modal',
+    callback_id:"sign_up",
     title: {
       type: 'plain_text',
       text: 'Sign up tech-tedxnu'

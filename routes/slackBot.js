@@ -28,7 +28,8 @@ router.post('/events',async (req,res) => {
 })
 
 router.post('/actions',async(req,res) => {
-  const {token,trigger_id,actions,type,view} = JSON.parse(req.body.payload);//なぜかpayloadがオブジェクトではなく文字列で渡されるため処理している。
+  const payload = JSON.parse(req.body.payload);//なぜかpayloadがオブジェクトではなく文字列で渡されるため処理している。
+  const {token,trigger_id,actions,type,view,user} = payload;
   //console.log("actions");
   console.log(req.body.payload);
   if(token == process.env.SLACK_EVENT_TOKEN){
@@ -55,8 +56,22 @@ router.post('/actions',async(req,res) => {
       case 'view_submission':{
         console.log(req.body);
         console.log(view.state.values)
-        res.send("");
-        modalActionHub.make_mtg(view.state.values);
+        switch (view.callback_id) {
+          case "make_mtg":{
+            modalActionHub.make_mtg(view.state.values);
+            res.send("");
+            break;
+          }
+          case "sign_up":{
+            modalActionHub.sign_up(payload);
+            res.send("");
+            break;
+          }
+          default:
+          console.log(req.body);
+          res.sendStatus(404);
+        }
+
         break;
       }
     }

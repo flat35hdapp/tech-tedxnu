@@ -31,14 +31,24 @@ const mtgCard = async (cardObj) => {
   });
 };
 
-const user_list = async (user_name)=>{
+const user_define = async (user_name)=>{
   var options = {
     method: 'GET',
-    url: `https://api.trello.com/1/organizations/${organization_id}/actions`,
+    url: `https://api.trello.com/1/organizations/${organization_id}/members`,
     qs: {key: api_key, token: api_token}
   };
 
-  const result = await request(options);
+  const JSON_result = await request(options);
+  const result = JSON.parse(JSON_result);
+  let return_obj = null;
+  for (var i = 0; i < result.length; i++) {
+    if(result[i].username==user_name){
+      return_obj = result[i];
+      break;
+    }
+  }
+  if(return_obj==null){return new Error("user_name is not collect");}
+  return return_obj;
 }
 
-module.exports = {mtgCard,user_list};
+module.exports = {mtgCard,user_define};

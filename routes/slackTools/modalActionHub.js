@@ -1,10 +1,8 @@
-/*global process*/
 const mongo = require("../mongodb/slack.js");
 const moment = require("moment");
-const qs = require('qs');
-const axios = require('axios');
 const trello = require('../trello.js');
-const api_url = "https://slack.com/api";
+const chat = require('./chat.js');
+
 
 const make_mtg = async (submit_obj) => {
   const m_date = submit_obj.make_mtg_date.mtg_date.selected_date;
@@ -52,155 +50,55 @@ const make_mtg = async (submit_obj) => {
   });
 };
 
-const sign_up = async (trigger_id) =>{
-  const modal = {
-    type: 'modal',
-    title: {
-      type: 'plain_text',
-      text: 'Sign up tech-tedxnu'
-    },
-    submit: {
-      type: 'plain_text',
-      text: 'Sign Up!'
-    },
-    blocks:[
-      {
-        "type":"input",
-        "label":{
-          "type":"plain_text",
-          "text":"Enter first name."
-        },
-        "element":{
-          "type":"plain_text_input",
-          "action_id":"sign_up_f_name",
-          "placeholder":{
-            "type":"plain_text",
-            "text":"Ren"
-          },
-          "multiline":false
-        },
-        "block_id":"sign_up_first_name"
-      },
-      {
-        "type":"input",
-        "label":{
-          "type":"plain_text",
-          "text":"Enter last name."
-        },
-        "element":{
-          "type":"plain_text_input",
-          "action_id":"sign_up_l_name",
-          "placeholder":{
-            "type":"plain_text",
-            "text":"Ueda"
-          },
-          "multiline":false
-        },
-        "block_id":"sign_up_last_name"
-      },
-      {
-        "type":"input",
-        "label":{
-          "type":"plain_text",
-          "text":"Enter email address."
-        },
-        "element":{
-          "type":"plain_text_input",
-          "action_id":"sign_up_email",
-          "placeholder":{
-            "type":"plain_text",
-            "text":"uedaren.tedxnu@gmail.com"
-          },
-          "multiline":false
-        },
-        "block_id":"sign_up_email"
-      },
-      {
-        "type":"input",
-        "label":{
-          "type":"plain_text",
-          "text":"Select teams"
-        },
-        "element":{
-          "type":"multi_static_select",
-          "placeholder":{
-            "type":"plain_text",
-            "text":"所属チームを選択してください。"
-          },
-          "action_id":"sign_up_t",
-          "options":[
-            {
-              "text":{
-                "type":"plain_text",
-                "text":"All Member"
-              },
-              "value":"all"
-            },
-            {
-              "text":{
-                "type":"plain_text",
-                "text":"Spaker Team"
-              },
-              "value":"spk"
-            },
-            {
-              "text":{
-                "type":"plain_text",
-                "text":"Communication Team"
-              },
-              "value":"com"
-            },
-            {
-              "text":{
-                "type":"plain_text",
-                "text":"Tech Team"
-              },
-              "value":"tec"
-            },
-            {
-              "text":{
-                "type":"plain_text",
-                "text":"Leaders Team"
-              },
-              "value":"ldr"
-            },
-            {
-              "text":{
-                "type":"plain_text",
-                "text":"Organize Team"
-              },
-              "value":"org"
-            }
-          ]
-        },
-        "block_id":"sign_up_teams"
-      },
-      {
-        "type":"input",
-        "label":{
-          "type":"plain_text",
-          "text":"Enter your trello user name."
-        },
-        "element":{
-          "type":"plain_text_input",
-          "action_id":"sign_up_trello_user_name",
-          "placeholder":{
-            "type":"plain_text",
-            "text":"@user12345678"
-          },
-          "multiline":false
-        },
-        "block_id":"sign_up_trello"
-      },
-    ]
-  };
-  const args = {
-    token: process.env.SLACK_BOT_TOKEN,
-    trigger_id: trigger_id,
-    view: JSON.stringify(modal)
-  };
-  const result = await axios.post(`${api_url}/views.open`, qs.stringify(args));
-  const tre_result = trello.user_list(user);
+const sign_up = async (payload) =>{
+  const submit_obj = payload.view.state.values;
+  const f_name = submit_obj.sign_up_first_name.sign_up_f_name.value;
+  const l_name = submit_obj.sign_up_last_name.sign_up_l_name.value;
+  const mail = submit_obj.sign_up_email.sign_up_email.value;
+  const t = submit_obj.sign_up_teams.sign_up_t.selected_options;
+  const sl_u_id = payload.user.id;
+  const tre_user_name = submit_obj.sign_up_trello.sign_up_trello_user_name.value;
+  let tre_user_id;
+  let result;
+
+  const exist = await mongo.find({"sl_u_id":sl_u_id},"user");
+  if(exist == []){//過去にユーザー登録していた場合はinsertではなくupdateが行われる。
+    try{
+      const trello_user = await trello.user_define(tre_user_name)
+      tre_user_id = trello_user.id;//user_objが返ってくるから、そのIDを入れとく。
+      result = await mongo.insert({
+        "f_name":f_name,
+        "l_name":l_name,
+        "mail":mail,
+        "t":t,
+        "sl_u_id":sl_u_id,
+        "tr_u_id":tre_user_id,
+        "att_m_id":[],
+        "abs_m_id":[],
+        "una_m_id":[],
+      },"user");
+    }catch(e){
+      console.error(e);
+      const error_message = "sign in 失敗のお知らせ...\n入力したtrello user nameが間違っているか、TEDxNagoyaUのtrelloに参加していない可能性があります。試行錯誤しても改善されない場合は以下の内容をチームリーダーに連絡してください。\n - Error code : 404\n - Error message : "+e;
+      await chat.postMessage(sl_u_id,error_message);
+    }
+  }else{
+    try{
+      tre_user_id = await trello.user_define(tre_user_name).id;//user_objが返ってくるから、そのIDを入れとく。
+      result = await mongo.update({"sl_u_id":sl_u_id},{
+        "f_name":f_name,
+        "l_name":l_name,
+        "mail":mail,
+        "t":t,
+        "sl_u_id":sl_u_id,
+        "tr_u_id":tre_user_id,
+      },"user");
+    }catch(e){
+      console.error(e);
+      const error_message = "sign in 失敗のお知らせ...\n入力したtrello user nameが間違っているか、TEDxNagoyaUのtrelloに参加していない可能性があります。試行錯誤しても改善されない場合は以下の内容をチームリーダーに連絡してください。\n - Error code : 404\n - Error message : "+e;
+      await chat.postMessage(sl_u_id,error_message);
+    }
+  }
   return result;
 }
 

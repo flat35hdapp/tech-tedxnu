@@ -1,4 +1,5 @@
 /*global process*/
+require('dotenv').config();
 const axios = require("axios");
 const qs = require('qs');
 const api_url = 'https://slack.com/api';

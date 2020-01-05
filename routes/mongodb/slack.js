@@ -47,6 +47,11 @@ const update_list = async (where,set,collection_name) => {
   const collection = await db.collection(collection_name);
   const find_result = await collection.find(where).toArray();
   const target_key = await Object.keys(set)[0];
+  console.log(where);
+  console.log(set);
+  console.log(collection_name)
+  console.log(find_result);
+  console.log(find_result[0]);
   const list = await find_result[0][target_key];
   await list.push(set[target_key]);
   const setting = await {$set:{[target_key]:list}};
@@ -64,6 +69,6 @@ const update = async (where,set,collection_name) => {
   return update_result;
 };
 //mongo のIDの文字列を入れるとmongoID objを返す。
-const id = async (id) => {return mongodb.ObjectID(id)};
+const id = (id) => {return mongodb.ObjectID(id)};
 
 module.exports = {find,insert,update_list,update,id};

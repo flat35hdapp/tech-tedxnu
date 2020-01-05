@@ -43,7 +43,8 @@ const make_mtg = async (submit_obj) => {
     "abs":[],
     "unans":[potential_user_id],
   },"mtg").then((result)=>{
-    const mtg_id = result.insertedIds;
+    console.log(result);
+    const mtg_id = result.insertedIds["0"];
     potential_user_id.map((user_id)=>{
       mongo.update_list({"_id":mongo.id(user_id)},{"una_m_id":mtg_id},"user");
     });
@@ -62,7 +63,9 @@ const sign_up = async (payload) =>{
   let result;
 
   const exist = await mongo.find({"sl_u_id":sl_u_id},"user");
-  if(exist == []){//過去にユーザー登録していた場合はinsertではなくupdateが行われる。
+  console.log(exist);
+  if(exist.length == 0){//過去にユーザー登録していた場合はinsertではなくupdateが行われる。
+    console.log("ifの中。")
     try{
       const trello_user = await trello.user_define(tre_user_name)
       tre_user_id = trello_user.id;//user_objが返ってくるから、そのIDを入れとく。

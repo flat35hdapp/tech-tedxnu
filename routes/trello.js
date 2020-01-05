@@ -1,8 +1,10 @@
 /*global process*/
 const request = require("request-promise");
+require('dotenv').config();
 const api_key = process.env.TRELLO_API_KEY;
 const api_token = process.env.TRELLO_API_TOKEN;
 const organization_id = process.env.TRELLO_ORGANIZATION_ID;
+
 
 //初期設定欄
 const id_card_source = '';//コピー元のURL

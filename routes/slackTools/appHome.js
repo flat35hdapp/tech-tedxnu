@@ -60,17 +60,20 @@ const updateView = async (user) => {
   ];
 
   //mongodbにクエリでslackのユーザーIDが含まれているチームやミーティングの情報を取ってきて、配列に格納する処理。
-  /*const user_obj = mongo.find({sl_u_id:user},user)[0];
+  const user_item = await mongo.find({sl_u_id:user},"user");
+  const user_obj = user_item[0];
+  let attend_mtg_id_list;
+  let absence_mtg_id_list;
+  let unanswered_mtg_id_list;
+  if("att_m_id" in user_obj)attend_mtg_id_list = user_obj.att_m_id;
+  if("abs_m_id" in user_obj)absence_mtg_id_list = user_obj.abs_m_id;
+  if("una_m_id" in user_obj)unanswered_mtg_id_list = user_obj.una_m_id;
 
-  const attend_mtg_id_list = user_obj.att_m_id;
-  const absence_mtg_id_list = user_obj.abs_m_id;
-  const unanswered_mtg_id_list = user_obj.una_m_id;
-
-  const attend_mtg_obj_list = mongo.find(attend_mtg_id_list.map(id=>{return {"m_id":id};}));
-  const absence_mtg_obj_list = mongo.find(absence_mtg_id_list.map(id=>{return {"m_id":id};}));
-  const unanswered_mtg_obj_list = mongo.find(unanswered_mtg_id_list.map(id=>{return {"m_id":id};}));
-
-  const mtg_obj_convert_section = (mtg_obj,attendance) => {//一つのミーティングオブジェクトを受け入れて、一つのミーティングセクションを返すだけの関数。
+  const attend_mtg_obj_list = attend_mtg_id_list.map(id=>{return mongo.find({"m_id":id},"mtg");});
+  const absence_mtg_obj_list = absence_mtg_id_list.map(id=>{return mongo.find({"m_id":id},"mtg");});
+  const unanswered_mtg_obj_list = unanswered_mtg_id_list.map(id=>{return mongo.find({"m_id":id},"mtg");});
+  //一つのミーティングオブジェクトを受け入れて、一つのミーティングセクションを返すだけの関数。
+  const mtg_obj_convert_section = (mtg_obj,attendance) => {
     const {mtg_id,mtg_name,mtg_date,mtg_start_time,mtg_end_time,mtg_place,} = mtg_obj;
     if(attendance == "未回答"){
       return [
@@ -195,20 +198,21 @@ const updateView = async (user) => {
       ];
     }
   }
-
-  const mtg_obj_list_convert_section_list = async (mtg_obj_list,attendance) => {//ミーティングオブジェクトの配列をセクションのリストに変換するだけの関数。
-    const section_list = mtg_obj_list.map((obj)=>{
+  //ミーティングオブジェクトの配列をセクションのリストに変換するだけの関数。
+  const mtg_obj_list_convert_section_list = async (mtg_obj_list,attendance) => {
+    const section_list = await mtg_obj_list.map((obj)=>{
       return mtg_obj_convert_section(obj,attendance);
     });
     return section_list;
   }
 
-  const mtg_list = Promise.all(
+  const mtg_list = await Promise.all(
     [
       mtg_obj_list_convert_section_list(unanswered_mtg_obj_list,"未回答"),
       mtg_obj_list_convert_section_list(attend_mtg_obj_list,"出席"),
       mtg_obj_list_convert_section_list(absence_mtg_obj_list,"欠席")
-    ]);*/
+    ]);
+  const blocks = header_blocks.concat(mtg_list[0]).concat(mtg_list[1]).concat(mtg_list[2]);
 
   const view = {
     type: 'home',
@@ -216,7 +220,7 @@ const updateView = async (user) => {
       type:'plain_text',
       text:'att_abs_home'
     },
-    blocks:header_blocks//.push(mtg_list)
+    blocks:blocks
   };
   //return JSON.stringify(view);
   return JSON.stringify(view);
@@ -229,6 +233,7 @@ const displayHome = async (user) => {
     view: await updateView(user)
   };
   const result = await axios.post(`${api_url}/views.publish`,qs.stringify(args));
+  console.log("--displayHome result--\n" + result);
   return result;
 }
 

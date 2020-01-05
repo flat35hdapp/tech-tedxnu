@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const appHome = require('./slackTools/appHome');
 const modalActionHub = require('./slackTools/modalActionHub');
+const modalMakeHub = require('./modalMakeHub.js');
 require('dotenv').config();
 
 router.post('/events',async (req,res) => {
@@ -44,6 +45,10 @@ router.post('/actions',async(req,res) => {
           case 'sign_up': {
             appHome.open_sign_up_modal(trigger_id);
             res.sendStatus(200);
+            break;
+          }
+          case 'add_team':{
+            modalMakeHub.open_add_team_modal(trigger_id);
             break;
           }
           default : {

@@ -2,7 +2,7 @@ const fs = require('fs');
 const readline = require('readline');
 const {google} = require('googleapis');
 
-const driveapi = function(){
+const driveapi = function(mtgDataJson){
   // If modifying these scopes, delete token.json.
   const SCOPES = ['https://www.googleapis.com/auth/drive.file',
                   'https://www.googleapis.com/auth/drive.appdata'];
@@ -126,7 +126,7 @@ const driveapi = function(){
   }
 
   function getMtgData(){
-    var json = fs.readFileSync("sample.json", "utf-8");
+    var json = fs.readFileSync(mtgDataJson, "utf-8");
     var obj = JSON.parse(json);
     var date = obj.m_date;
     return {date: date};

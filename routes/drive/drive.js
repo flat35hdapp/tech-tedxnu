@@ -126,7 +126,7 @@ const driveapi = function(mtgDataJson){
   }
 
   function getMtgData(){
-    var json = fs.readFileSync(mtgDataJson, "utf-8");
+    var json = mtgDataJson;
     var obj = JSON.parse(json);
     var date = obj.m_date;
     return {date: date};

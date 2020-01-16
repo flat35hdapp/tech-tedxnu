@@ -3,24 +3,30 @@ const express = require('express');
 const router = express.Router();
 const appHome = require('./slackTools/appHome');
 const modalActionHub = require('./slackTools/modalActionHub');
-const modalMakeHub = require('./modalMakeHub.js');
+const modalMakeHub = require('./slackTools/modalMakeHub');
 require('dotenv').config();
 
 router.post('/events',async (req,res) => {
-  //console.log("events");
-  //console.log(req.body);
+  console.log("events");
+  console.log(req.body);
   switch(req.body.type){
     case 'url_verification':{
       res.send({challenge: req.body.challenge});
       break;
     }
     case 'event_callback' :{
-      const {type,user,channel,tab,text,subtype} = req.body.event;
-      if(type==='app_home_opened'){
+      const {type,user} = req.body.event;//channel,tab,text,subtypeもあるよ
+      switch (type) {
+        case "app_home_opened":
         console.log('app_home_opend');
         //console.log(typeof req.body.event);
         appHome.displayHome(user);
         res.sendStatus(200);
+          break;
+        case "app_mention":
+        console.log("app_mention");
+        res.sendStatus(200);
+          break;
       }
       break;
     }
@@ -30,7 +36,7 @@ router.post('/events',async (req,res) => {
 
 router.post('/actions',async(req,res) => {
   const payload = JSON.parse(req.body.payload);//なぜかpayloadがオブジェクトではなく文字列で渡されるため処理している。
-  const {token,trigger_id,actions,type,view,user} = payload;
+  const {token,trigger_id,actions,type,view} = payload;//userもあるよ
   //console.log("actions");
   console.log(req.body.payload);
   if(token == process.env.SLACK_EVENT_TOKEN){
@@ -48,7 +54,17 @@ router.post('/actions',async(req,res) => {
             break;
           }
           case 'add_team':{
-            modalMakeHub.open_add_team_modal(trigger_id);
+            try{
+              modalMakeHub.open_add_team_modal(trigger_id);
+            }catch(e){
+              console.error(e);
+            }
+            res.sendStatus(200);
+            break;
+          }
+          case "set_env":{
+            modalMakeHub.open_setting_modal(trigger_id);
+            res.sendStatus(200);
             break;
           }
           default : {
@@ -72,6 +88,11 @@ router.post('/actions',async(req,res) => {
             res.send("");
             break;
           }
+          case "add_team":{
+            modalActionHub.add_team(view.state.values);
+            res.send("");
+            break;
+          }
           default:
           console.log(req.body);
           res.sendStatus(404);
@@ -79,6 +100,7 @@ router.post('/actions',async(req,res) => {
 
         break;
       }
+
     }
   }else{
     console.log(token);

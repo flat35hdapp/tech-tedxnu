@@ -78,4 +78,4 @@ const open_add_team_modal = async (trigger_id) => {
   return result;
 }
 
-exports.module = {open_add_team_modal};
+module.exports = {open_add_team_modal};

@@ -56,6 +56,38 @@ const updateView = async (user) => {
     },
     {
       type: 'divider'
+    },
+    {
+      "type":"actions",
+      "elements":[
+        {
+          "type":"button",
+          "text":{
+            "type":"plain_text",
+            "text":"setting"
+          },
+          "action_id":"set_env",
+          "value":"set_env"
+        },
+        {
+          "type":"button",
+          "text":{
+            "type":"plain_text",
+            "text":"sign up"
+          },
+          "action_id":"sign_up",
+          "value":"sign_up"
+        },
+        {
+          "type":"button",
+          "text":{
+            "type":"plain_text",
+            "text":"Make team"
+          },
+          "action_id":"add_team",
+          "value":"add_team"
+        }
+      ],
     }
   ];
 
@@ -69,9 +101,21 @@ const updateView = async (user) => {
   if("abs_m_id" in user_obj)absence_mtg_id_list = user_obj.abs_m_id;
   if("una_m_id" in user_obj)unanswered_mtg_id_list = user_obj.una_m_id;
 
-  const attend_mtg_obj_list = attend_mtg_id_list.map(id=>{return mongo.find({"m_id":id},"mtg");});
-  const absence_mtg_obj_list = absence_mtg_id_list.map(id=>{return mongo.find({"m_id":id},"mtg");});
-  const unanswered_mtg_obj_list = unanswered_mtg_id_list.map(id=>{return mongo.find({"m_id":id},"mtg");});
+  const attend_mtg_obj_list = attend_mtg_id_list.map(async(id)=>{
+    const mongo_id = await mongo.id(id);
+    const result = await mongo.find({"_id":mongo_id},"mtg");
+    return result;
+  });
+  const absence_mtg_obj_list = absence_mtg_id_list.map(async(id)=>{
+    const mongo_id = await mongo.id(id);
+    const result = await mongo.find({"_id":mongo_id},"mtg");
+    return result;
+  });
+  const unanswered_mtg_obj_list = unanswered_mtg_id_list.map(async(id)=>{
+    const mongo_id = await mongo.id(id);
+    const result = await mongo.find({"_id":mongo_id},"mtg");
+    return result;
+  });
   //一つのミーティングオブジェクトを受け入れて、一つのミーティングセクションを返すだけの関数。
   const mtg_obj_convert_section = (mtg_obj,attendance) => {
     const {mtg_id,mtg_name,mtg_date,mtg_start_time,mtg_end_time,mtg_place,} = mtg_obj;
@@ -407,7 +451,162 @@ const open_make_mtg_modal = async (trigger_id) => {
 const open_mtg_detail_modal = async (trigger_id) => {
   const mtg_obj = mongo.find({"_id":trigger_id});
   const {m_name,m_date,m_s_t,m_e_t,} = mtg_obj;
-  const modal = {};
+  const modal = {
+    type: 'modal',
+    callback_id:"open_mtg_detail",
+    title: {
+      type: 'plain_text',
+      text: 'MTG Details'
+    },
+    /*submit: {
+      type: 'plain_text',
+      text: 'Create'
+    },*/
+    blocks: [
+      /*{
+        "type":"input",
+        "label":{
+          "type":"plain_text",
+          "text":"Select teams"
+        },
+        "element":{//一個しか入らないことに注意。
+          "type":"multi_static_select",
+          "placeholder":{
+            "type":"plain_text",
+            "text":"参加するチームを選んでください。"
+          },
+          "action_id":"mtg_teams",//観測対象。
+          "options":[
+            {
+              "text":{
+                "type":"plain_text",
+                "text":"All Member"
+              },
+              "value":"all"
+            },
+            {
+              "text":{
+                "type":"plain_text",
+                "text":"Spaker Team"
+              },
+              "value":"spk"
+            },
+            {
+              "text":{
+                "type":"plain_text",
+                "text":"Communication Team"
+              },
+              "value":"com"
+            },
+            {
+              "text":{
+                "type":"plain_text",
+                "text":"Tech Team"
+              },
+              "value":"tec"
+            },
+            {
+              "text":{
+                "type":"plain_text",
+                "text":"Leaders Team"
+              },
+              "value":"ldr"
+            },
+            {
+              "text":{
+                "type":"plain_text",
+                "text":"Organize Team"
+              },
+              "value":"org"
+            }
+          ]
+        },
+        "block_id":"make_mtg_teams"
+      },
+      {
+        "type":"input",
+        "label":{
+          "type":"plain_text",
+          "text":"Select MTG date"
+        },
+        "element":{
+          "type":"datepicker",
+          "action_id":"mtg_date",
+          "placeholder":{
+            "type":"plain_text",
+            "text":"ミーティングの日にちを入力"
+          },
+          "initial_date":moment().add(7,'days').format("YYYY-MM-DD")
+        },
+        "block_id":"make_mtg_date"
+      },
+      {
+        "type":"input",
+        "label":{
+          "type":"plain_text",
+          "text":"Enter start time."
+        },
+        "element":{
+          "type":"plain_text_input",
+          "action_id":"mtg_start_time",
+          "placeholder":{
+            "type":"plain_text",
+            "text":"hh:mm"
+          },
+          "multiline":false
+        },
+        "block_id":"make_mtg_start_time"
+      },
+      {
+        "type":"input",
+        "label":{
+          "type":"plain_text",
+          "text":"Enter end time."
+        },
+        "element":{
+          "type":"plain_text_input",
+          "action_id":"mtg_end_time",
+          "placeholder":{
+            "type":"plain_text",
+            "text":"hh:mm"
+          },
+          "multiline":false
+        },
+        "block_id":"make_mtg_end_time"
+      },
+      {
+        "type":"input",
+        "label":{
+          "type":"plain_text",
+          "text":"Enter mtg place."
+        },
+        "element":{
+          "type":"plain_text_input",
+          "action_id":"mtg_place",
+          "initial_value":"名大文総",
+          "multiline":false
+        },
+        "block_id":"make_mtg_place"
+      },
+      {
+        "type":"input",
+        "label":{
+          "type":"plain_text",
+          "text":"Enter ajenda."
+        },
+        "element":{
+          "type":"plain_text_input",
+          "action_id":"mtg_agenda",
+          "placeholder":{
+            "type":"plain_text",
+            "text":"議題をカンマ(,)区切りで入力してください。"
+          },
+          "multiline":false
+        },
+        "block_id":"make_mtg_ajenda"
+      }*/
+    ]
+  };
   const args = {
     token: slack_bot_token,
     trigger_id: trigger_id,

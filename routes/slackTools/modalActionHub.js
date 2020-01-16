@@ -45,8 +45,10 @@ const make_mtg = async (submit_obj) => {
   },"mtg").then((result)=>{
     console.log(result);
     const mtg_id = result.insertedIds["0"];
-    potential_user_id.map((user_id)=>{
-      mongo.update_list({"_id":mongo.id(user_id)},{"una_m_id":mtg_id},"user");
+    console.log("mtg_id is "+mtg_id);
+    potential_user_id.map(async (user_id)=>{
+      const id = mongo.id(user_id);
+      mongo.update_list({"_id":id},{"una_m_id":mtg_id},"user");
     });
   });
 };
@@ -105,4 +107,21 @@ const sign_up = async (payload) =>{
   return result;
 }
 
-module.exports = {make_mtg,sign_up};
+const add_team = async(user_id,submit_obj)=>{
+  const obj = submit_obj;
+  const t_name = obj.add_team_name.add_t_name.value,
+        t_l_name = obj.add_team_l_name.add_t_l_name.value,
+        member = obj.add_team_member.add_team_member.selected_users;
+  let exist;
+  try{
+    await mongo.find({"t_name":t_name},"team");
+  }catch(e){
+    console.error(e);
+
+  }
+  if(exist>0){
+
+  }
+};
+
+module.exports = {make_mtg,sign_up,add_team};

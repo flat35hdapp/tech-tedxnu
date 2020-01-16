@@ -47,11 +47,12 @@ const update_list = async (where,set,collection_name) => {
   const collection = await db.collection(collection_name);
   const find_result = await collection.find(where).toArray();
   const target_key = await Object.keys(set)[0];
-  console.log(where);
-  console.log(set);
-  console.log(collection_name)
-  console.log(find_result);
-  console.log(find_result[0]);
+  console.log("1"+where);
+  console.log("2"+set);
+  console.log("3"+collection_name)
+  console.log("4"+find_result);
+  console.log("5"+find_result[0]);
+  console.log("6"+target_key);
   const list = await find_result[0][target_key];
   await list.push(set[target_key]);
   const setting = await {$set:{[target_key]:list}};

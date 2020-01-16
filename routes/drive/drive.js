@@ -2,7 +2,7 @@ const fs = require('fs');
 const readline = require('readline');
 const {google} = require('googleapis');
 
-const driveapi = function(mtgDataJson){
+const driveapi = function(mtgDataObj){
   // If modifying these scopes, delete token.json.
   const SCOPES = ['https://www.googleapis.com/auth/drive.file',
                   'https://www.googleapis.com/auth/drive.appdata'];
@@ -72,7 +72,7 @@ const driveapi = function(mtgDataJson){
       /*フォルダ名minitesTemplate*/
       const targetFolderId = '1HbsnjXIRdY1US4EawT3Bf9LHiZgsRzTQ';
       const drive = google.drive({version: 'v3', auth});
-      var mtgData = getMtgData();
+
       function copy(callback1,callback2){
         const copyParams = {
             fileId: templateFileId,
@@ -88,48 +88,78 @@ const driveapi = function(mtgDataJson){
 
       function update(callback){
         console.log('update() start');
-        console.log(mtgData.date);
+        console.log(mtgDataObj.m_date);
         const updateParams = {
             fileId: targetFileId,
             uploadType: 'multipart',
             addParents: targetFolderId,
             removeParents: beforeFolderId,
             fields: 'id, parents',
-            requestBody: {name: mtgData.date}
+            requestBody: {name: mtgDataObj.m_date}
         };
         drive.files.update(updateParams, )
         .then(res => console.log(res))
         .catch(err => console.log(err));
         console.log('update() end');
+        callback();
       }
 
       function printDocTitle() {
+        console.log(`printDocTitle() start`);
         const docs = google.docs({version: 'v1', auth});
-        const reqests = [
+        var agLiLen = mtgDataObj.m_agenda.length;
+
+        if (agLiLen == 0) {
+          for (var i = 0; i < mtgDataObj.m_agenda; i++) {
+          mtgDataObj.m_agenda[i] = " ";
+        }}else if (agLiLen == 1) {
+          for (var i = 1; i < mtgDataObj.m_agenda; i++) {
+          mtgDataObj.m_agenda[i] = " ";
+        }}else if (agLiLen == 2) {
+          for (var i = 2; i < mtgDataObj.m_agenda; i++) {
+          mtgDataObj.m_agenda[i] = " ";
+        }};
+
+        console.log(mtgDataObj.m_agenda)
+
+        const requests = [
                 {
-                  replaceAllText  : {
-                            replaceText: mtgData.date,
-                            containsText: {text: 'YYMMDD_タイトル', matchCase: true}
+                  "replaceAllText"  : {
+                            "containsText": {"matchCase": true ,"text": "YYMMDD_タイトル"},
+                            "replaceText": mtgDataObj.m_date
+                        }
+                },
+                {
+                  "replaceAllText"  : {
+                            "containsText": {"matchCase": true ,"text": "m_agenda1"},
+                            "replaceText":mtgDataObj.m_agenda[0]
+                        }
+                },
+                {
+                  "replaceAllText"  : {
+                            "containsText": {"matchCase": true ,"text": "m_agenda2"},
+                            "replaceText":mtgDataObj.m_agenda[1]
+                        }
+                },
+                {
+                  "replaceAllText"  : {
+                            "containsText": {"matchCase": true ,"text": "m_agenda3"},
+                            "replaceText":mtgDataObj.m_agenda[2]
                         }
                 }
               ];
-        docs.documents.batchUpdate({
-          documentId: targetFileId,
-          requestBody: {
-            requests: reqests
-          }}, (err, res) => {
-          if (err) return console.log('The API returned an error: ' + err);
-          console.log(`success!!`);
-        })};
+        const param = {'documentId': targetFileId,
+                       'resource': {'requests': requests}};
 
-      copy(update, printDocTitle);
-  }
+        function batch(){
+          docs.documents.batchUpdate(param, (err, res) => {
+            if (err) return console.log('The API returned an error: ' + err);
+            if (res) return console.log(`success!!`);
+          });
+        }
 
-  function getMtgData(){
-    var json = mtgDataJson;
-    var obj = JSON.parse(json);
-    var date = obj.m_date;
-    return {date: date};
+        //param変数に値を代入する前にbatchupdateを実行してしまうのを防ぐ。
+        setTimeout(batch, '1500');
   }
 
   function create(auth){
@@ -153,7 +183,6 @@ const driveapi = function(mtgDataJson){
   }
 
   function createMinutes(auth){
-    var mtgData = getMtgData();
     const drive = google.drive({version: 'v3', auth});
     var fileMetadata = {
       name : 'minitesTemplate',

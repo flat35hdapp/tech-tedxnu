@@ -2,7 +2,7 @@ const fs = require('fs');
 const readline = require('readline');
 const {google} = require('googleapis');
 
-const driveapi = function(mtgDataObj){
+ function driveapi(mtgDataObj){
   // If modifying these scopes, delete token.json.
   const SCOPES = ['https://www.googleapis.com/auth/drive.file',
                   'https://www.googleapis.com/auth/drive.appdata'];
@@ -13,11 +13,18 @@ const driveapi = function(mtgDataObj){
   const callback_method = [copyMinites];
 
   // Load client secrets from a local file.
-  fs.readFile('credentials.json', (err, content) => {
-    if (err) return console.log('Error loading client secret file:', err);
-    // Authorize a client with credentials, then call the Google Docs API.
-    authorize(JSON.parse(content), callback_method[0]);
-  });
+  async function main(){
+    let result = new Promise((resolve,reject) =>{
+      fs.readFile('credentials.json', (err, content) => {
+        if (err) return console.log('Error loading client secret file:', err);
+        // Authorize a client with credentials, then call the Google Docs API.
+        authorize(JSON.parse(content), callback_method[0]);
+      });
+    })
+
+      return await result;
+  }
+
 
   /**
    * Create an OAuth2 client with the given credentials, and then execute the
@@ -25,6 +32,8 @@ const driveapi = function(mtgDataObj){
    * @param {Object} credentials The authorization client credentials.
    * @param {function} callback The callback to call with the authorized client.
    */
+
+  //以下二つの関数は必須！
   function authorize(credentials, callback) {
     const {client_secret, client_id, redirect_uris} = credentials.installed;
     const oAuth2Client = new google.auth.OAuth2(
@@ -63,8 +72,12 @@ const driveapi = function(mtgDataObj){
     });
   }
 
-  function copyMinites(auth) {
+  //以下、必要な関数作る。
 
+  //main巻数。テンプレートからコピーしてデータ挿入までやる。returnは作成ファイルのURL。
+  async function copyMinites(auth) {
+
+    let result = new Promise((resolve,reject) =>{
       const templateFileId = `1JDIEJWDAE8RnihL55_zv-WMQ2oaXKXDFJzmHooM7cJs`;
       var targetFileId;
       /*フォルダ名minitesTemplateFolder*/
@@ -72,7 +85,6 @@ const driveapi = function(mtgDataObj){
       /*フォルダ名minitesTemplate*/
       const targetFolderId = '1HbsnjXIRdY1US4EawT3Bf9LHiZgsRzTQ';
       const drive = google.drive({version: 'v3', auth});
-
       function copy(callback1,callback2){
         const copyParams = {
             fileId: templateFileId,
@@ -81,7 +93,8 @@ const driveapi = function(mtgDataObj){
         .then(function(res){
           targetFileId = res.data.id;
           console.log('copy()  end ' + targetFileId);
-          callback1(callback2)
+          global.url = "https://docs.google.com/document/d/" + targetFileId;
+          callback1(callback2);
         })
         .catch(err => console.log(err));
       }
@@ -160,9 +173,19 @@ const driveapi = function(mtgDataObj){
 
         //param変数に値を代入する前にbatchupdateを実行してしまうのを防ぐ。
         setTimeout(batch, '1500');
+
+        };
+
+      copy(update, printDocTitle);
+
+    })
+    //(C)awaitで非同期処理の結果を待つ
+    //resultの処理が返ったら関数の呼び出し元に返す
+    return await result;
   }
 
-  function create(auth){
+  //このアプリ権限で操作できる議事録ファイルの作成
+  function createMinutes(auth){
     const drive = google.drive({version: 'v3', auth});
     var fileMetadata = {
       'name': '議事録',
@@ -182,7 +205,8 @@ const driveapi = function(mtgDataObj){
     });
   }
 
-  function createMinutes(auth){
+  //このアプリ権限で操作できるフォルダの作成
+  function create(auth){
     const drive = google.drive({version: 'v3', auth});
     var fileMetadata = {
       name : 'minitesTemplate',
@@ -199,6 +223,10 @@ const driveapi = function(mtgDataObj){
       }
     });
   }
+
+  main().then((res)=>{
+    console.log("Async function is " + res)
+  });
 
 }
 

@@ -18,4 +18,9 @@ drive.jsにはdriveapiモジュールが格納されている。使用すると�
 /routes : app.js に呼び出される機能をまとめたディレクトリ。開発はここを中心に行う。  
 /routes/slackBot.js : /app/slack へのリクエストを捌く部分。  
 /routes/slackTools : slackBot.js の機能でモジュール化したものを入れておくディレクトリ。  
+<<<<<<< HEAD
 /routes/drive : テンプレートにmtgデータを代入して議事録生成する。
+=======
+/routes/  
+/db_design : mongodbのデータベース設計。
+>>>>>>> develop

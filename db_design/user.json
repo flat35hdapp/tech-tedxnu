@@ -1,10 +1,24 @@
 {
-  "original_user_id": "hogehoge",
   "fisrt_name": "taro",
   "last_name": "yamada",
   "mail": "yamadataro.tedxnu@gmail.com",
   "team": ["spkr","recruit"],
   "slack_user_id": "hogehoge",
   "trello_user_id": "hogehoge",
-  "attend_mtg_id":[]
+  "attend_mtg_id":[],
+  "absence_mtg_id":[],
+  "other_mtg_id":[],
+  "unanswered_mtg_id":[]
+},
+
+{
+  "f_name":"taro",
+  "l_name":"yamada",
+  "mail":"yamadataro.tedxnu@gmail.com",
+  "t":[],
+  "sl_u_id":"hoge",
+  "tr_u_id":"hoge",
+  "att_m_id":[],
+  "abs_m_id":[],
+  "una_m_id":[],
 }

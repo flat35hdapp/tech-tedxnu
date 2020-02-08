@@ -2,232 +2,190 @@ const fs = require('fs');
 const readline = require('readline');
 const {google} = require('googleapis');
 
- function driveapi(mtgDataObj){
-  // If modifying these scopes, delete token.json.
-  const SCOPES = ['https://www.googleapis.com/auth/drive.file',
-                  'https://www.googleapis.com/auth/drive.appdata'];
-  // The file token.json stores the user's access and refresh tokens, and is
-  // created automatically when the authorization flow completes for the first
-  // time.
-  const TOKEN_PATH = 'token.json';
-  const callback_method = [copyMinites];
+//必要変数
+    const SCOPES = ['https://www.googleapis.com/auth/drive.file',
+                    'https://www.googleapis.com/auth/drive.appdata'];
+    const TOKEN_PATH = './token.json';
 
-  // Load client secrets from a local file.
-  async function main(){
-    let result = new Promise((resolve,reject) =>{
-      fs.readFile('credentials.json', (err, content) => {
-        if (err) return console.log('Error loading client secret file:', err);
-        // Authorize a client with credentials, then call the Google Docs API.
-        authorize(JSON.parse(content), callback_method[0]);
+//ドライブの諸々のID
+    const templateFileId = `1JDIEJWDAE8RnihL55_zv-WMQ2oaXKXDFJzmHooM7cJs`;
+    var targetFileId;
+    /*フォルダ名minitesTemplateFolder*/
+    const beforeFolderId = '1lUc9yYe2_hhPQKfDmvVhElNLxlw0JECt';
+    /*フォルダ名minitesTemplate*/
+    const targetFolderId = '1HbsnjXIRdY1US4EawT3Bf9LHiZgsRzTQ';
+
+
+//メイン関数。これがモジュールの本体。
+async function driveapi(mtgDataObj){
+  const jsonFile = fs.readFileSync('credentials.json');
+  const clientId = await authorize(JSON.parse(jsonFile));
+  const URL      = await copyMinites(clientId, mtgDataObj);
+  return new Promise(resolve => {
+    resolve(URL);
+  });
+}
+
+
+//authorize関数。credentials.jsonから認証させる。
+async function authorize(credentials) {
+  const {client_secret, client_id, redirect_uris} = credentials.installed;
+  const oAuth2Client = new google.auth.OAuth2(
+      client_id, client_secret, redirect_uris[0]);
+  const tok = fs.readFileSync(TOKEN_PATH);
+  await oAuth2Client.setCredentials(JSON.parse(tok));
+  return new Promise( resolve => {
+    console.log('authorize() clear');
+    resolve(oAuth2Client);
+  });
+}
+
+    //新しくトークンを取得するときの関数。基本使わないが万が一トークンを消した時の保険。
+    async function getNewToken(oAuth2Client) {
+      const authUrl = oAuth2Client.generateAuthUrl({
+        access_type: 'offline',
+        scope: SCOPES,
       });
-    })
-
-      return await result;
-  }
-
-
-  /**
-   * Create an OAuth2 client with the given credentials, and then execute the
-   * given callback function.
-   * @param {Object} credentials The authorization client credentials.
-   * @param {function} callback The callback to call with the authorized client.
-   */
-
-  //以下二つの関数は必須！
-  function authorize(credentials, callback) {
-    const {client_secret, client_id, redirect_uris} = credentials.installed;
-    const oAuth2Client = new google.auth.OAuth2(
-        client_id, client_secret, redirect_uris[0]);
-
-    // Check if we have previously stored a token.
-    fs.readFile(TOKEN_PATH, (err, token) => {
-      if (err) return getNewToken(oAuth2Client, callback);
-      oAuth2Client.setCredentials(JSON.parse(token));
-      callback(oAuth2Client);
-    });
-  }
-
-  function getNewToken(oAuth2Client, callback) {
-    const authUrl = oAuth2Client.generateAuthUrl({
-      access_type: 'offline',
-      scope: SCOPES,
-    });
-    console.log('Authorize this app by visiting this url:', authUrl);
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
-    rl.question('Enter the code from that page here: ', (code) => {
-      rl.close();
-      oAuth2Client.getToken(code, (err, token) => {
-        if (err) return console.error('Error retrieving access token', err);
-        oAuth2Client.setCredentials(token);
-        // Store the token to disk for later program executions
-        fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
-          if (err) console.error(err);
-          console.log('Token stored to', TOKEN_PATH);
+      console.log('Authorize this app by visiting this url:', authUrl);
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+      });
+      rl.question('Enter the code from that page here: ', (code) => {
+        rl.close();
+        oAuth2Client.getToken(code, (err, token) => {
+          if (err) return console.error('Error retrieving access token', err);
+          oAuth2Client.setCredentials(token);
+          // Store the token to disk for later program executions
+          fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
+            if (err) console.error(err);
+            console.log('Token stored to', TOKEN_PATH);
+          });
         });
-        callback(oAuth2Client);
       });
-    });
-  }
+      return new Promise(resolve => {
+        resolve(TOKEN_PATH);
+      })
+    }
 
-  //以下、必要な関数作る。
 
-  //main巻数。テンプレートからコピーしてデータ挿入までやる。returnは作成ファイルのURL。
-  async function copyMinites(auth) {
 
-    let result = new Promise((resolve,reject) =>{
-      const templateFileId = `1JDIEJWDAE8RnihL55_zv-WMQ2oaXKXDFJzmHooM7cJs`;
-      var targetFileId;
-      /*フォルダ名minitesTemplateFolder*/
-      const beforeFolderId = '1lUc9yYe2_hhPQKfDmvVhElNLxlw0JECt';
-      /*フォルダ名minitesTemplate*/
-      const targetFolderId = '1HbsnjXIRdY1US4EawT3Bf9LHiZgsRzTQ';
-      const drive = google.drive({version: 'v3', auth});
-      function copy(callback1,callback2){
-        const copyParams = {
-            fileId: templateFileId,
-        };
+//ドライブ操作のメイン関数。中に以下３つの関数が格納されている。
+async function copyMinites(clientId, mtgDataObj) {
+  console.log('copyMinites() start ');
+  const drive    = await google.drive({version: 'v3', auth: clientId});
+  const docs     = await google.docs({version: 'v1', auth: clientId});
+  const responseURL = await copy(drive);
+  await update(drive, mtgDataObj);
+  await printDoc(docs, mtgDataObj);
+
+  return new Promise(resolve =>{
+    resolve(responseURL);
+  });
+}
+
+    //copy関数。テンプレートをコピーして、コピー先のファイルのURLを返す。
+    async function copy(drive){
+      console.log('copy() start ');
+      const copyParams = {
+          fileId: templateFileId,
+      };
+      return new Promise(resolve => {
         drive.files.copy(copyParams)
         .then(function(res){
           targetFileId = res.data.id;
           console.log('copy()  end ' + targetFileId);
-          global.url = "https://docs.google.com/document/d/" + targetFileId;
-          callback1(callback2);
+          const resURL = "https://docs.google.com/document/d/" + targetFileId;
+          resolve(resURL);
         })
-        .catch(err => console.log(err));
-      }
-
-      function update(callback){
-        console.log('update() start');
-        console.log(mtgDataObj.m_date);
-        const updateParams = {
-            fileId: targetFileId,
-            uploadType: 'multipart',
-            addParents: targetFolderId,
-            removeParents: beforeFolderId,
-            fields: 'id, parents',
-            requestBody: {name: mtgDataObj.m_date}
-        };
-        drive.files.update(updateParams, )
-        .then(res => console.log(res))
-        .catch(err => console.log(err));
-        console.log('update() end');
-        callback();
-      }
-
-      function printDocTitle() {
-        console.log(`printDocTitle() start`);
-        const docs = google.docs({version: 'v1', auth});
-        var agLiLen = mtgDataObj.m_agenda.length;
-
-        if (agLiLen == 0) {
-          for (var i = 0; i < mtgDataObj.m_agenda; i++) {
-          mtgDataObj.m_agenda[i] = " ";
-        }}else if (agLiLen == 1) {
-          for (var i = 1; i < mtgDataObj.m_agenda; i++) {
-          mtgDataObj.m_agenda[i] = " ";
-        }}else if (agLiLen == 2) {
-          for (var i = 2; i < mtgDataObj.m_agenda; i++) {
-          mtgDataObj.m_agenda[i] = " ";
-        }};
-
-        console.log(mtgDataObj.m_agenda)
-
-        const requests = [
-                {
-                  "replaceAllText"  : {
-                            "containsText": {"matchCase": true ,"text": "YYMMDD_タイトル"},
-                            "replaceText": mtgDataObj.m_date
-                        }
-                },
-                {
-                  "replaceAllText"  : {
-                            "containsText": {"matchCase": true ,"text": "m_agenda1"},
-                            "replaceText":mtgDataObj.m_agenda[0]
-                        }
-                },
-                {
-                  "replaceAllText"  : {
-                            "containsText": {"matchCase": true ,"text": "m_agenda2"},
-                            "replaceText":mtgDataObj.m_agenda[1]
-                        }
-                },
-                {
-                  "replaceAllText"  : {
-                            "containsText": {"matchCase": true ,"text": "m_agenda3"},
-                            "replaceText":mtgDataObj.m_agenda[2]
-                        }
-                }
-              ];
-        const param = {'documentId': targetFileId,
-                       'resource': {'requests': requests}};
-
-        function batch(){
-          docs.documents.batchUpdate(param, (err, res) => {
-            if (err) return console.log('The API returned an error: ' + err);
-            if (res) return console.log(`success!!`);
+        .catch(err => {
+          const resURL = 0;
+          console.log(err);
           });
-        }
 
-        //param変数に値を代入する前にbatchupdateを実行してしまうのを防ぐ。
-        setTimeout(batch, '1500');
+      });
+    }
+    //update関数。フォルダの移動、タイトル変更等行う。
+    async function update(drive, mtgDataObj){
+            console.log('update() start');
+            console.log(mtgDataObj.m_date);
+            const updateParams = {
+                fileId: targetFileId,
+                uploadType: 'multipart',
+                addParents: targetFolderId,
+                removeParents: beforeFolderId,
+                fields: 'id, parents',
+                requestBody: {name: mtgDataObj.m_date}
+            };
+            drive.files.update(updateParams, )
+            .then(res => console.log('update()ok.'))
+            .catch(err => console.log(err));
+            console.log('update() end');
+            return new Promise(resolve => {
+              resolve();
+            });
+          }
+    //printDoc関数。ファイル内のタイトルの置換、アジェンダの書き込みを行う。
+    async function printDoc(docs, mtgDataObj) {
+                  console.log(`printDocTitle() start`);
 
-        };
+                  var agLiLen = mtgDataObj.m_agenda.length;
 
-      copy(update, printDocTitle);
+                  if (agLiLen == 0) {
+                    for (var i = 0; i < mtgDataObj.m_agenda; i++) {
+                    mtgDataObj.m_agenda[i] = " ";
+                  }}else if (agLiLen == 1) {
+                    for (var i = 1; i < mtgDataObj.m_agenda; i++) {
+                    mtgDataObj.m_agenda[i] = " ";
+                  }}else if (agLiLen == 2) {
+                    for (var i = 2; i < mtgDataObj.m_agenda; i++) {
+                    mtgDataObj.m_agenda[i] = " ";
+                  }};
 
-    })
-    //(C)awaitで非同期処理の結果を待つ
-    //resultの処理が返ったら関数の呼び出し元に返す
-    return await result;
-  }
+                  console.log(mtgDataObj.m_agenda)
 
-  //このアプリ権限で操作できる議事録ファイルの作成
-  function createMinutes(auth){
-    const drive = google.drive({version: 'v3', auth});
-    var fileMetadata = {
-      'name': '議事録',
-      'mimeType': 'application/vnd.google-apps.document',
-      'parent': ['1sb-ZmnIJFN78rBwOrZFHYK4QoSZ33iGI']
-    };
-    drive.files.create({
-      resource: fileMetadata,
-      fields: 'id'
-    }, function (err, file) {
-      if (err) {
-        // Handle error
-        console.error(err);
-      } else {
-        console.log('Folder Id: ', file.id);
-      }
-    });
-  }
+                  const requests = [
+                          {
+                            "replaceAllText"  : {
+                                      "containsText": {"matchCase": true ,"text": "YYMMDD_タイトル"},
+                                      "replaceText": mtgDataObj.m_date
+                                  }
+                          },
+                          {
+                            "replaceAllText"  : {
+                                      "containsText": {"matchCase": true ,"text": "m_agenda1"},
+                                      "replaceText":mtgDataObj.m_agenda[0]
+                                  }
+                          },
+                          {
+                            "replaceAllText"  : {
+                                      "containsText": {"matchCase": true ,"text": "m_agenda2"},
+                                      "replaceText":mtgDataObj.m_agenda[1]
+                                  }
+                          },
+                          {
+                            "replaceAllText"  : {
+                                      "containsText": {"matchCase": true ,"text": "m_agenda3"},
+                                      "replaceText":mtgDataObj.m_agenda[2]
+                                  }
+                          }
+                        ];
+                  const param = {'documentId': targetFileId,
+                                 'resource': {'requests': requests}};
 
-  //このアプリ権限で操作できるフォルダの作成
-  function create(auth){
-    const drive = google.drive({version: 'v3', auth});
-    var fileMetadata = {
-      name : 'minitesTemplate',
-      mimeType : 'application/vnd.google-apps.folder'
-    };
-    drive.files.create({
-      resource: fileMetadata
-    }, function (err, file) {
-      if (err) {
-        // Handle error
-        console.error(err);
-      } else {
-        console.log('Folder Id: ', file.id);
-      }
-    });
-  }
+                  function batch(){
+                    docs.documents.batchUpdate(param, (err, res) => {
+                      if (err) return console.log('The API returned an error: ' + err);
+                      if (res) return console.log(`success!!`);
+                    });
+                  }
 
-  main().then((res)=>{
-    console.log("Async function is " + res)
-  });
+                  //param変数に値を代入する前にbatchupdateを実行してしまうのを防ぐ。
+                  setTimeout(batch, '1500');
+                  return new Promise(resolve => {
+                    resolve();
+                  });
+            }
 
-}
 
 module.exports = {driveapi};

@@ -127,65 +127,65 @@ async function copyMinites(clientId, mtgDataObj) {
           }
     //printDoc関数。ファイル内のタイトルの置換、アジェンダの書き込みを行う。
     async function printDoc(docs, mtgDataObj) {
-                  console.log(`printDocTitle() start`);
+        console.log(`printDocTitle() start`);
 
-                  var agLiLen = mtgDataObj.m_agenda.length;
+        var agLiLen = mtgDataObj.m_agenda.length;
 
-                  if (agLiLen == 0) {
-                    for (var i = 0; i < mtgDataObj.m_agenda; i++) {
-                    mtgDataObj.m_agenda[i] = " ";
-                  }}else if (agLiLen == 1) {
-                    for (var i = 1; i < mtgDataObj.m_agenda; i++) {
-                    mtgDataObj.m_agenda[i] = " ";
-                  }}else if (agLiLen == 2) {
-                    for (var i = 2; i < mtgDataObj.m_agenda; i++) {
-                    mtgDataObj.m_agenda[i] = " ";
-                  }};
+        if (agLiLen == 0) {
+          for (var i = 0; i < mtgDataObj.m_agenda; i++) {
+          mtgDataObj.m_agenda[i] = " ";
+        }}else if (agLiLen == 1) {
+          for (var i = 1; i < mtgDataObj.m_agenda; i++) {
+          mtgDataObj.m_agenda[i] = " ";
+        }}else if (agLiLen == 2) {
+          for (var i = 2; i < mtgDataObj.m_agenda; i++) {
+          mtgDataObj.m_agenda[i] = " ";
+        }};
 
-                  console.log(mtgDataObj.m_agenda)
+        console.log(mtgDataObj.m_agenda)
 
-                  const requests = [
-                          {
-                            "replaceAllText"  : {
-                                      "containsText": {"matchCase": true ,"text": "YYMMDD_タイトル"},
-                                      "replaceText": mtgDataObj.m_date
-                                  }
-                          },
-                          {
-                            "replaceAllText"  : {
-                                      "containsText": {"matchCase": true ,"text": "m_agenda1"},
-                                      "replaceText":mtgDataObj.m_agenda[0]
-                                  }
-                          },
-                          {
-                            "replaceAllText"  : {
-                                      "containsText": {"matchCase": true ,"text": "m_agenda2"},
-                                      "replaceText":mtgDataObj.m_agenda[1]
-                                  }
-                          },
-                          {
-                            "replaceAllText"  : {
-                                      "containsText": {"matchCase": true ,"text": "m_agenda3"},
-                                      "replaceText":mtgDataObj.m_agenda[2]
-                                  }
-                          }
-                        ];
-                  const param = {'documentId': targetFileId,
-                                 'resource': {'requests': requests}};
+        const requests = [
+                {
+                  "replaceAllText"  : {
+                            "containsText": {"matchCase": true ,"text": "YYMMDD_タイトル"},
+                            "replaceText": mtgDataObj.m_date
+                        }
+                },
+                {
+                  "replaceAllText"  : {
+                            "containsText": {"matchCase": true ,"text": "m_agenda1"},
+                            "replaceText":mtgDataObj.m_agenda[0]
+                        }
+                },
+                {
+                  "replaceAllText"  : {
+                            "containsText": {"matchCase": true ,"text": "m_agenda2"},
+                            "replaceText":mtgDataObj.m_agenda[1]
+                        }
+                },
+                {
+                  "replaceAllText"  : {
+                            "containsText": {"matchCase": true ,"text": "m_agenda3"},
+                            "replaceText":mtgDataObj.m_agenda[2]
+                        }
+                }
+              ];
+        const param = {'documentId': targetFileId,
+                       'resource': {'requests': requests}};
 
-                  function batch(){
-                    docs.documents.batchUpdate(param, (err, res) => {
-                      if (err) return console.log('The API returned an error: ' + err);
-                      if (res) return console.log(`success!!`);
-                    });
-                  }
+        function batch(){
+          docs.documents.batchUpdate(param, (err, res) => {
+            if (err) return console.log('The API returned an error: ' + err);
+            if (res) return console.log(`success!!`);
+          });
+        }
 
-                  //param変数に値を代入する前にbatchupdateを実行してしまうのを防ぐ。
-                  setTimeout(batch, '1500');
-                  return new Promise(resolve => {
-                    resolve();
-                  });
-            }
+        //param変数に値を代入する前にbatchupdateを実行してしまうのを防ぐ。
+        setTimeout(batch, '1500');
+        return new Promise(resolve => {
+          resolve();
+        });
+  }
 
 
 module.exports = {driveapi};

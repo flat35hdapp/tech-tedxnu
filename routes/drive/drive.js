@@ -181,7 +181,7 @@ async function copyMinites(clientId, mtgDataObj) {
         }
 
         //param変数に値を代入する前にbatchupdateを実行してしまうのを防ぐ。
-        setTimeout(batch, '1500');
+        setTimeout(batch, '100');
         return new Promise(resolve => {
           resolve();
         });

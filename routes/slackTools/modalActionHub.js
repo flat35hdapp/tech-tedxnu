@@ -17,16 +17,16 @@ const make_mtg = async (submit_obj) => {
 
   let m_name = "";
   for (var i = 0; i < mtg_teams.length; i++) {
-    if(i == 0){
-      m_name = mtg_teams[i].value;
-    }else{
-      m_name = m_name + " " + mtg_teams[i].value;
-    }
+    m_name = m_name + mtg_teams[i].value + " ";
   }
-  //参加するメンバーの重複なしリスト。
-  const potential_user_id = Array.from(new Set(m_t.map((t)=>{
+  //参加するメンバーの重複ありリスト
+  const over_lapping_list = await Promise.all(m_t.map((t)=>{
     return mongo.find({"team":t},"team").member;
-  })));
+  }))
+  console.log(over_lapping_list);
+
+  //参加するメンバーの重複なしリスト。
+  const potential_user_id = Array.from(new Set(over_lapping_list));
 
   mongo.insert({
     "m_name": moment(m_date).format('YYYYMMDD') + " "+ m_name,
@@ -114,14 +114,30 @@ const add_team = async(user_id,submit_obj)=>{
         member = obj.add_team_member.add_team_member.selected_users;
   let exist;
   try{
-    await mongo.find({"t_name":t_name},"team");
+    exist = await mongo.find({"t_name":t_name},"team");
   }catch(e){
     console.error(e);
+  }
+  let result;
+  if(exist.length>0){
+    try{
+      chat.postMessage(user_id,`チーム名：${t_name}は使用済みです。別のチーム名を選択してください。`);
+    }catch(e){
+      console.error(e);
+    }
+  }else{
+    try{
+      result = await mongo.insert({
+        "t_name":t_name,
+        "t_l_name":t_l_name,
+        "t_mem":member
+      },"team");
+    }catch(e){
+      console.error(e);
+    }
 
   }
-  if(exist>0){
-
-  }
+  return result;
 };
 
 module.exports = {make_mtg,sign_up,add_team};

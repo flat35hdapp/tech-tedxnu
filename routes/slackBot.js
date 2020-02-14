@@ -36,7 +36,7 @@ router.post('/events',async (req,res) => {
 
 router.post('/actions',async(req,res) => {
   const payload = JSON.parse(req.body.payload);//なぜかpayloadがオブジェクトではなく文字列で渡されるため処理している。
-  const {token,trigger_id,actions,type,view} = payload;//userもあるよ
+  const {token,trigger_id,actions,type,view,user} = payload;//userもあるよ
   //console.log("actions");
   console.log(req.body.payload);
   if(token == process.env.SLACK_EVENT_TOKEN){
@@ -68,7 +68,7 @@ router.post('/actions',async(req,res) => {
             break;
           }
           default : {
-            console.log(req.body);
+            console.log("irregular block_actions requested\naction_id : "+ actions[0].action_id);
             res.sendStatus(404);
           }
         }
@@ -89,12 +89,12 @@ router.post('/actions',async(req,res) => {
             break;
           }
           case "add_team":{
-            modalActionHub.add_team(view.state.values);
+            modalActionHub.add_team(user.id,view.state.values);
             res.send("");
             break;
           }
           default:
-          console.log(req.body);
+          console.log("irregular view_submission requested\ncallback_id: "+view.callback_id);
           res.sendStatus(404);
         }
 

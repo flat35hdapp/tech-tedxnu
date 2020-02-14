@@ -97,10 +97,12 @@ const updateView = async (user) => {
   let attend_mtg_id_list;
   let absence_mtg_id_list;
   let unanswered_mtg_id_list;
-  if("att_m_id" in user_obj)attend_mtg_id_list = user_obj.att_m_id;
-  if("abs_m_id" in user_obj)absence_mtg_id_list = user_obj.abs_m_id;
-  if("una_m_id" in user_obj)unanswered_mtg_id_list = user_obj.una_m_id;
-
+  if(user_item.length>0){
+    attend_mtg_id_list = user_obj.att_m_id;
+    absence_mtg_id_list = user_obj.abs_m_id;
+    unanswered_mtg_id_list = user_obj.una_m_id;
+  }
+console.log(`attend: ${attend_mtg_id_list}\nabsence: ${absence_mtg_id_list}\nunanswered; ${unanswered_mtg_id_list}`);
   const attend_mtg_obj_list = attend_mtg_id_list.map(async(id)=>{
     const mongo_id = await mongo.id(id);
     const result = await mongo.find({"_id":mongo_id},"mtg");
